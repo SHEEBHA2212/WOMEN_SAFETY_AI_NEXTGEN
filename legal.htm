@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Assistance</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-color: #eef4f1;
+    --card-color: #fdfcf9;
+    --text-color: #2e2e2e;
+    --subtext-color: #666;
+    --primary: #5f7c8a;
+}
+
+body.dark {
+    --bg-color: #202123;
+    --card-color: #2a2b2e;
+    --text-color: #ececec;
+    --subtext-color: #b4b4b4;
+    --primary: #7fa6b3;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family:'Inter',sans-serif;
+    background:var(--bg-color);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* Header */
+header {
+    background:var(--card-color);
+    padding:16px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h2 { color:var(--text-color); font-size:18px; }
+header button { background:none; border:none; cursor:pointer; color:var(--subtext-color); }
+
+/* Layout */
+.container {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    padding:30px 20px;
+}
+
+.card {
+    background:var(--card-color);
+    padding:25px;
+    width:100%;
+    max-width:550px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card h3 { color:var(--text-color); margin-bottom:10px; }
+.card p { color:var(--subtext-color); font-size:14px; margin-bottom:20px; }
+
+select {
+    width:100%;
+    padding:10px;
+    margin-bottom:15px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button.advice-btn {
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:var(--primary);
+    color:white;
+    cursor:pointer;
+}
+
+/* ✔ Visibility fix */
+.advice-box {
+    margin-top:20px;
+    padding:16px;
+    border-radius:8px;
+    background:rgba(0,0,0,0.06);
+    color:var(--text-color);
+    font-size:14px;
+    line-height:1.6;
+    display:none;
+}
+
+body.dark .advice-box {
+    background:rgba(255,255,255,0.08);
+}
+
+.ngo-list {
+    margin-top:12px;
+    font-size:13px;
+    line-height:1.6;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="goHome()">Home</button>
+    <h2>Legal Assistance</h2>
+    <button onclick="toggleDarkMode()">🌙</button>
+</header>
+
+<div class="container">
+    <div class="card">
+
+        <h3>Know Your Legal Options</h3>
+        <p>Select your issue to receive legal guidance and helpful NGO contacts.</p>
+
+        <select id="issueSelect">
+            <option value="">Select Issue</option>
+            <option value="harassment">Harassment</option>
+            <option value="bullying">Bullying</option>
+            <option value="domestic">Domestic Violence</option>
+            <option value="discrimination">Discrimination</option>
+            <option value="cyber">Cyber Crime</option>
+        </select>
+
+        <button class="advice-btn" onclick="showAdvice()">Get Legal Guidance</button>
+
+        <div id="adviceBox" class="advice-box"></div>
+
+    </div>
+</div>
+
+<script>
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode",
+        document.body.classList.contains("dark") ? "enabled" : "disabled");
+}
+
+/* ✔ FIXED → .htm instead of .html */
+function goHome() {
+    window.location.href = "index.htm";
+}
+
+function showAdvice() {
+    const issue = document.getElementById("issueSelect").value;
+    const box = document.getElementById("adviceBox");
+
+    let advice = "";
+
+    if (issue === "harassment") {
+        advice = `
+        File a complaint with local police or workplace authority. Keep evidence safe.
+
+        <div class="ngo-list">
+        Helpful NGOs:
+        • National Commission for Women – 181  
+        • Sakshi NGO – Legal support for harassment victims  
+        </div>`;
+    }
+
+    else if (issue === "bullying") {
+        advice = `
+        Report to school/college authorities. Maintain proof of incidents.
+
+        <div class="ngo-list">
+        Helpful NGOs:
+        • Childline India – 1098  
+        • Save the Children India  
+        </div>`;
+    }
+
+    else if (issue === "domestic") {
+        advice = `
+        You are protected under domestic violence laws. Approach police or helpline 181.
+
+        <div class="ngo-list">
+        Helpful NGOs:
+        • Sneha Foundation  
+        • Jagori Women Support  
+        </div>`;
+    }
+
+    else if (issue === "discrimination") {
+        advice = `
+        Report to workplace grievance cell or human rights commission.
+
+        <div class="ngo-list">
+        Helpful NGOs:
+        • Human Rights Law Network  
+        • National Human Rights Commission  
+        </div>`;
+    }
+
+    else if (issue === "cyber") {
+        advice = `
+        Report cyber crime at helpline 1930 or cyber crime portal. Save screenshots.
+
+        <div class="ngo-list">
+        Helpful NGOs:
+        • Cyber Peace Foundation  
+        • Digital India Cyber Safety Support  
+        </div>`;
+    }
+
+    else {
+        alert("Please select an issue.");
+        return;
+    }
+
+    box.style.display = "block";
+    box.innerHTML = advice;
+}
+</script>
+
+</body>
+</html>
