@@ -18,6 +18,10 @@ const legalSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+  status: {
+    type: String,
+    default: "Pending"
   }
 }, {
   timestamps: true
