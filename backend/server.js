@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const Complaint = require("./models/complaint"); // make sure filename matches
+const Legal = require("./models/legal"); 
 
 const app = express();
 
@@ -13,26 +13,26 @@ app.use(express.json());
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected Successfully"))
-  .catch(err => console.log(err));
+  .catch(err => console.error("MongoDB Connection Error:", err));
 
-// POST Route - Save Complaint
+// POST Route - Save Legal Request
 app.post("/api/legal-help", async (req, res) => {
   try {
     console.log("Received Data:", req.body);
 
-    const newComplaint = new Complaint(req.body);
-    await newComplaint.save();
+    const newLegalRequest = new Legal(req.body);
+    const savedData = await newLegalRequest.save();
 
-    console.log("Saved to MongoDB:", newComplaint);
+    console.log("Saved to MongoDB:", savedData);
 
     res.status(200).json({
-      message: "Complaint saved successfully!"
+      message: "Legal request saved successfully!"
     });
 
   } catch (error) {
-    console.error("Error saving complaint:", error);
+    console.error("Error saving legal request:", error);
     res.status(500).json({
-      error: "Failed to save complaint"
+      error: "Failed to save legal request"
     });
   }
 });
