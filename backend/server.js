@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const Legal = require("./models/legal"); 
+const Legal = require("./models/legal");
 
 const app = express();
 
@@ -13,31 +13,64 @@ app.use(express.json());
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected Successfully"))
-  .catch(err => console.error("MongoDB Connection Error:", err));
+  .catch((err) => console.error("MongoDB Connection Error:", err));
 
-// POST Route - Save Legal Request
+// ===============================
+// POST - Create Legal Request
+// ===============================
 app.post("/api/legal-help", async (req, res) => {
   try {
-    console.log("Received Data:", req.body);
+    const { name, phone, issue, description } = req.body;
 
-    const newLegalRequest = new Legal(req.body);
+    // Basic Validation
+    if (!name || !phone || !issue || !description) {
+      return res.status(400).json({
+        error: "All fields are required",
+      });
+    }
+
+    const newLegalRequest = new Legal({
+      name,
+      phone,
+      issue,
+      description,
+    });
+
     const savedData = await newLegalRequest.save();
 
-    console.log("Saved to MongoDB:", savedData);
-
-    res.status(200).json({
-      message: "Legal request saved successfully!"
+    res.status(201).json({
+      message: "Legal request saved successfully!",
+      data: savedData,
     });
 
   } catch (error) {
     console.error("Error saving legal request:", error);
     res.status(500).json({
-      error: "Failed to save legal request"
+      error: "Internal server error",
+    });
+  }
+});
+
+// ===============================
+// GET - Fetch All Legal Requests
+// ===============================
+app.get("/api/legal-help", async (req, res) => {
+  try {
+    const allRequests = await Legal.find().sort({ createdAt: -1 });
+
+    res.status(200).json(allRequests);
+
+  } catch (error) {
+    console.error("Error fetching legal requests:", error);
+    res.status(500).json({
+      error: "Failed to fetch legal requests",
     });
   }
 });
 
 // Start Server
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
