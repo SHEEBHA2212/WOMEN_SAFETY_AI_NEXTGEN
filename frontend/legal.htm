@@ -82,6 +82,11 @@ button.primary-btn {
     cursor:pointer;
 }
 
+button.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .advice-box {
     margin-top:20px;
     padding:16px;
@@ -101,6 +106,11 @@ body.dark .advice-box {
     margin-top:12px;
     font-size:13px;
     line-height:1.6;
+}
+
+#formMessage {
+    margin-top:10px;
+    font-size:14px;
 }
 </style>
 </head>
@@ -140,7 +150,8 @@ body.dark .advice-box {
     <input type="text" id="name" placeholder="Your Name" required>
     <input type="text" id="phone" placeholder="Phone Number" required>
     <textarea id="description" placeholder="Briefly describe your issue" required></textarea>
-    <button type="submit" class="primary-btn">Submit Request</button>
+    <button type="submit" class="primary-btn" id="submitBtn">Submit Request</button>
+    <p id="formMessage"></p>
 </form>
 
 </div>
@@ -166,6 +177,11 @@ function goHome() {
 function showAdvice() {
     const issue = document.getElementById("issueSelect").value;
     const box = document.getElementById("adviceBox");
+
+    if (!issue) {
+        alert("Please select an issue.");
+        return;
+    }
 
     let advice = "";
 
@@ -209,27 +225,44 @@ function showAdvice() {
         • Digital India Cyber Safety
         </div>`;
     }
-    else {
-        alert("Please select an issue.");
-        return;
-    }
 
     box.style.display = "block";
     box.innerHTML = advice;
 }
 
-/* Backend Connection */
+/* Backend Connection + Validation */
 document.getElementById("legalForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
+    const submitBtn = document.getElementById("submitBtn");
+    const messageBox = document.getElementById("formMessage");
+
     const formData = {
-        name: document.getElementById("name").value,
-        phone: document.getElementById("phone").value,
+        name: document.getElementById("name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
         issue: document.getElementById("issueSelect").value,
-        description: document.getElementById("description").value
+        description: document.getElementById("description").value.trim()
     };
 
+    // Validate issue
+    if (!formData.issue) {
+        messageBox.style.color = "red";
+        messageBox.textContent = "Please select an issue.";
+        return;
+    }
+
+    // Validate phone
+    if (!/^[0-9]{10}$/.test(formData.phone)) {
+        messageBox.style.color = "red";
+        messageBox.textContent = "Enter valid 10 digit phone number.";
+        return;
+    }
+
     try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
+        messageBox.textContent = "";
+
         const response = await fetch("http://localhost:5000/api/legal-help", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -237,10 +270,24 @@ document.getElementById("legalForm").addEventListener("submit", async function(e
         });
 
         const result = await response.json();
-        alert(result.message);
-        document.getElementById("legalForm").reset();
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Request";
+
+        if (response.ok) {
+            messageBox.style.color = "green";
+            messageBox.textContent = "Request submitted successfully!";
+            document.getElementById("legalForm").reset();
+        } else {
+            messageBox.style.color = "red";
+            messageBox.textContent = result.error || "Something went wrong.";
+        }
+
     } catch (error) {
-        alert("Server not reachable. Make sure backend is running.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Request";
+        messageBox.style.color = "red";
+        messageBox.textContent = "Server not reachable. Make sure backend is running.";
     }
 });
 </script>
