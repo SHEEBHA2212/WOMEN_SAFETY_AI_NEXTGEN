@@ -191,7 +191,6 @@ a:hover {
 </div>
 
 <script>
-/* Dark Mode */
 window.onload = function() {
     if (localStorage.getItem("darkMode") === "enabled") {
         document.body.classList.add("dark");
@@ -200,45 +199,76 @@ window.onload = function() {
 
 function toggleDarkMode() {
     document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode",
-        document.body.classList.contains("dark") ? "enabled" : "disabled");
+    localStorage.setItem(
+        "darkMode",
+        document.body.classList.contains("dark") ? "enabled" : "disabled"
+    );
 }
 
 function goHome() {
     window.location.href = "index.htm";
 }
 
-/* Panic Mode */
 function activatePanic() {
     if (!confirm("Activate Panic Mode?")) return;
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by this browser.");
+        return;
+    }
 
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+            const emergencyMessage = `I am in emergency. My location: ${mapLink}`;
 
             const box = document.getElementById("locationBox");
             box.style.display = "block";
             box.innerHTML =
-                "Location detected.<br><a href='" + mapLink +
-                "' target='_blank'>Open in Maps</a>";
+                "Location detected.<br><a href='" + mapLink + "' target='_blank'>Open in Maps</a>";
 
-            window.currentLocation =
-                "I am in emergency. My location: " + mapLink;
-        });
-    }
+            window.currentLocation = emergencyMessage;
+
+            fetch("http://127.0.0.1:8000/api/emergency-alert/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lon,
+                    map_link: mapLink,
+                    message: emergencyMessage
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Emergency alert has been sent successfully.");
+                } else {
+                    alert("Could not save emergency alert.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Backend connection failed.");
+            });
+        },
+        function(error) {
+            alert("Unable to get your location.");
+            console.error(error);
+        }
+    );
 }
 
-/* Call */
 function callNumber(num) {
     if (confirm("Call emergency services?")) {
         window.location.href = "tel:" + num;
     }
 }
 
-/* SMS */
 function sendSMS() {
     let message = window.currentLocation || "I am in emergency. Please help.";
     window.location.href = "sms:?body=" + encodeURIComponent(message);
