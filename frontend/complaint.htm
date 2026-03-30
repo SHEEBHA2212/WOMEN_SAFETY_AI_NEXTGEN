@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidential Complaint</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-color: #eef4f1;
+    --card-color: #fdfcf9;
+    --text-color: #2e2e2e;
+    --subtext-color: #666;
+    --primary: #5f7c8a;
+}
+
+body.dark {
+    --bg-color: #202123;
+    --card-color: #2a2b2e;
+    --text-color: #ececec;
+    --subtext-color: #b4b4b4;
+    --primary: #7fa6b3;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s ease;
+}
+
+/* Header */
+header {
+    background: var(--card-color);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--subtext-color);
+}
+
+/* Container */
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 30px 20px;
+}
+
+.card {
+    background: var(--card-color);
+    padding: 25px;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: 0.3s ease;
+}
+
+.card p {
+    font-size: 14px;
+    color: var(--subtext-color);
+    margin-bottom: 20px;
+}
+
+/* Form */
+label {
+    font-size: 13px;
+    color: var(--text-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+}
+
+textarea {
+    resize: none;
+    height: 100px;
+}
+
+button.submit-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button.submit-btn:hover {
+    opacity: 0.9;
+}
+
+/* Success Message */
+.success {
+    margin-top: 15px;
+    padding: 10px;
+    background: #d4edda;
+    color: #155724;
+    font-size: 13px;
+    border-radius: 6px;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="goHome()">Home</button>
+    <h2>Confidential Complaint</h2>
+    <button onclick="toggleDarkMode()">🌙</button>
+</header>
+
+<div class="container">
+    <div class="card">
+
+        <p>Your report will remain confidential. Please provide as much detail as you feel comfortable sharing.</p>
+
+        <label>Type of Issue</label>
+        <select id="issueType">
+            <option value="">Select issue type</option>
+            <option>Harassment</option>
+            <option>Bullying</option>
+            <option>Unsafe Environment</option>
+            <option>Discrimination</option>
+            <option>Other</option>
+        </select>
+
+        <label>Location (if applicable)</label>
+        <input type="text" id="location" placeholder="Enter location">
+
+        <label>Description</label>
+        <textarea id="description" placeholder="Describe what happened..."></textarea>
+
+        <label>Your Contact (optional)</label>
+        <input type="text" id="contact" placeholder="Email or phone (optional)">
+
+        <button class="submit-btn" onclick="submitComplaint()">Submit Complaint</button>
+
+        <div class="success" id="successMsg">
+            Your complaint has been submitted successfully. Our team will review it promptly.
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+/* LOAD SAVED DARK MODE */
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+async function submitComplaint() {
+
+    const issue = document.getElementById("issueType").value;
+    const location = document.getElementById("location").value;
+    const description = document.getElementById("description").value;
+    const contact = document.getElementById("contact").value;
+
+    if (issue === "" || description === "") {
+        alert("Please select issue type and provide description.");
+        return;
+    }
+
+    const response = await fetch("http://127.0.0.1:5000/submit_complaint", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            issueType: issue,
+            location: location,
+            description: description,
+            contact: contact
+        })
+    });
+
+    const data = await response.json();
+
+    document.getElementById("successMsg").style.display = "block";
+
+    document.getElementById("issueType").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("contact").value = "";
+}
+
+function goHome() {
+    window.location.href = "index.htm";
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("darkMode", "enabled");
+    } else {
+        localStorage.setItem("darkMode", "disabled");
+    }
+}
+</script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidential Complaint</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-color: #eef4f1;
+    --card-color: #fdfcf9;
+    --text-color: #2e2e2e;
+    --subtext-color: #666;
+    --primary: #5f7c8a;
+}
+
+body.dark {
+    --bg-color: #202123;
+    --card-color: #2a2b2e;
+    --text-color: #ececec;
+    --subtext-color: #b4b4b4;
+    --primary: #7fa6b3;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s ease;
+}
+
+/* Header */
+header {
+    background: var(--card-color);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--subtext-color);
+}
+
+/* Container */
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 30px 20px;
+}
+
+.card {
+    background: var(--card-color);
+    padding: 25px;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: 0.3s ease;
+}
+
+.card p {
+    font-size: 14px;
+    color: var(--subtext-color);
+    margin-bottom: 20px;
+}
+
+/* Form */
+label {
+    font-size: 13px;
+    color: var(--text-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+}
+
+textarea {
+    resize: none;
+    height: 100px;
+}
+
+button.submit-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button.submit-btn:hover {
+    opacity: 0.9;
+}
+
+/* Success Message */
+.success {
+    margin-top: 15px;
+    padding: 10px;
+    background: #d4edda;
+    color: #155724;
+    font-size: 13px;
+    border-radius: 6px;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="goHome()">Home</button>
+    <h2>Confidential Complaint</h2>
+    <button onclick="toggleDarkMode()">🌙</button>
+</header>
+
+<div class="container">
+    <div class="card">
+
+        <p>Your report will remain confidential. Please provide as much detail as you feel comfortable sharing.</p>
+
+        <label>Type of Issue</label>
+        <select id="issueType">
+            <option value="">Select issue type</option>
+            <option>Harassment</option>
+            <option>Bullying</option>
+            <option>Unsafe Environment</option>
+            <option>Discrimination</option>
+            <option>Other</option>
+        </select>
+
+        <label>Location (if applicable)</label>
+        <input type="text" id="location" placeholder="Enter location">
+
+        <label>Description</label>
+        <textarea id="description" placeholder="Describe what happened..."></textarea>
+
+        <label>Your Contact (optional)</label>
+        <input type="text" id="contact" placeholder="Email or phone (optional)">
+
+        <button class="submit-btn" onclick="submitComplaint()">Submit Complaint</button>
+
+        <div class="success" id="successMsg">
+            Your complaint has been submitted successfully. Our team will review it promptly.
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+/* LOAD SAVED DARK MODE */
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+function submitComplaint() {
+    const issue = document.getElementById("issueType").value;
+    const desc = document.getElementById("description").value.trim();
+
+    if (issue === "" || desc === "") {
+        alert("Please select issue type and provide description.");
+        return;
+    }
+
+    document.getElementById("successMsg").style.display = "block";
+
+    document.getElementById("issueType").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("contact").value = "";
+}
+
+function goHome() {
+    window.location.href = "index.htm";
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("darkMode", "enabled");
+    } else {
+        localStorage.setItem("darkMode", "disabled");
+    }
+}
+</script>
+
+</body>
+</html>
+
