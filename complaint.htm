@@ -188,14 +188,32 @@ window.onload = function() {
     }
 };
 
-function submitComplaint() {
-    const issue = document.getElementById("issueType").value;
-    const desc = document.getElementById("description").value.trim();
+async function submitComplaint() {
 
-    if (issue === "" || desc === "") {
+    const issue = document.getElementById("issueType").value;
+    const location = document.getElementById("location").value;
+    const description = document.getElementById("description").value;
+    const contact = document.getElementById("contact").value;
+
+    if (issue === "" || description === "") {
         alert("Please select issue type and provide description.");
         return;
     }
+
+    const response = await fetch("http://127.0.0.1:5000/submit_complaint", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            issueType: issue,
+            location: location,
+            description: description,
+            contact: contact
+        })
+    });
+
+    const data = await response.json();
 
     document.getElementById("successMsg").style.display = "block";
 
