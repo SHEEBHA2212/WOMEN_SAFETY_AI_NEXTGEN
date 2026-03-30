@@ -1,3 +1,4 @@
+<<<<<<< HEAD:frontend/emergency.htm
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -247,3 +248,284 @@ function sendSMS() {
 
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergency Assistance</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2e2e2e;
+    --subtext: #666;
+    --danger: #d64545;
+    --neutral: #e9ecef;
+}
+
+body.dark {
+    --bg: #121212;          /* soft dark background */
+    --card: #1e1e1e;        /* dark card */
+    --text: #f0f0f0;        /* lighter text */
+    --subtext: #cccccc;     /* soft subtext */
+    --danger: #ff4c4c;      /* panic button */
+    --neutral: #2a2a2a;     /* action buttons */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: 0.3s ease;
+}
+
+header {
+    background: var(--card);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+header button {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text);
+}
+
+/* Layout */
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.card {
+    background: var(--card);
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+/* Head Text */
+.card h3 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+.card p {
+    font-size: 14px;
+    color: var(--subtext);
+    margin-bottom: 25px;
+}
+
+/* Panic Button */
+.panic-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    background: var(--danger);
+    color: white;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.panic-btn:hover {
+    opacity: 0.9;
+}
+
+/* Actions Grid */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.action-btn {
+    padding: 20px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    background: var(--neutral);
+    color: var(--text);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.action-btn:hover {
+    background: #4a4a4a;
+    color: #fff;
+}
+
+/* Location Box */
+.location-box {
+    margin-top: 25px;
+    padding: 12px;
+    font-size: 14px;
+    background: var(--neutral);
+    border-radius: 12px;
+    display: none;
+    word-wrap: break-word;
+}
+
+a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="goHome()">Home</button>
+    <h2>Emergency</h2>
+    <button onclick="toggleDarkMode()">🌙</button>
+</header>
+
+<div class="container">
+    <div class="card">
+
+        <h3>Immediate Assistance</h3>
+        <p>If you are in danger, activate panic mode or contact emergency services below.</p>
+
+        <button class="panic-btn" onclick="activatePanic()">
+            Activate Panic Mode
+        </button>
+
+        <div class="actions-grid">
+            <button class="action-btn" onclick="callNumber('112')">National Emergency (112)</button>
+            <button class="action-btn" onclick="callNumber('100')">Police</button>
+            <button class="action-btn" onclick="callNumber('108')">Ambulance</button>
+            <button class="action-btn" onclick="sendSMS()">Send Emergency SMS</button>
+        </div>
+
+        <div id="locationBox" class="location-box"></div>
+
+    </div>
+</div>
+
+<script>
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem(
+        "darkMode",
+        document.body.classList.contains("dark") ? "enabled" : "disabled"
+    );
+}
+
+function goHome() {
+    window.location.href = "index.htm";
+}
+
+function activatePanic() {
+    if (!confirm("Activate Panic Mode?")) return;
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by this browser.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+            const emergencyMessage = `I am in emergency. My location: ${mapLink}`;
+
+            const box = document.getElementById("locationBox");
+            box.style.display = "block";
+            box.innerHTML =
+                "Location detected.<br><a href='" + mapLink + "' target='_blank'>Open in Maps</a>";
+
+            window.currentLocation = emergencyMessage;
+
+            fetch("http://127.0.0.1:8000/api/emergency-alert/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lon,
+                    map_link: mapLink,
+                    message: emergencyMessage
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Emergency alert has been sent successfully.");
+                } else {
+                    alert("Could not save emergency alert.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Backend connection failed.");
+            });
+        },
+        function(error) {
+            alert("Unable to get your location.");
+            console.error(error);
+        }
+    );
+}
+
+function callNumber(num) {
+    if (confirm("Call emergency services?")) {
+        window.location.href = "tel:" + num;
+    }
+}
+
+function sendSMS() {
+    let message = window.currentLocation || "I am in emergency. Please help.";
+    window.location.href = "sms:?body=" + encodeURIComponent(message);
+}
+</script>
+
+</body>
+</html>
+>>>>>>> 2826fe6e4d78f60685ae3d1b99c061b1a9f66c81:emergency.htm
