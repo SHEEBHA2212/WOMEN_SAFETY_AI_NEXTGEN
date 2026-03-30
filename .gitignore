@@ -19,3 +19,8 @@ env/
 
 # Mac
 .DS_Store
+
+
+# Node / Express Backend
+backend/node_modules/
+backend/.env
