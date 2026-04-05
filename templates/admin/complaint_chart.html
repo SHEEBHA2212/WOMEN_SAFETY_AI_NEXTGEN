@@ -1,0 +1,28 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+<h2>Complaint Statistics</h2>
+
+<canvas id="complaintChart" width="400" height="200"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('complaintChart');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: JSON.parse('{{ labels|escapejs }}'),
+        datasets: [{
+            label: 'Number of Complaints',
+            data: JSON.parse('{{ data|escapejs }}'),
+            borderWidth: 1
+        }]
+    }
+});
+</script>
+
+{{ block.super }}
+
+{% endblock %}
