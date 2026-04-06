@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-color: #eef4f1;
+    --card-color: #fdfcf9;
+    --text-color: #2e2e2e;
+    --subtext-color: #666;
+    --primary: #5f7c8a;
+}
+
+body.dark {
+    --bg-color: #202123;
+    --card-color: #2a2b2e;
+    --text-color: #ececec;
+    --subtext-color: #b4b4b4;
+    --primary: #7fa6b3;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family:'Inter',sans-serif;
+    background:var(--bg-color);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* HEADER SAME */
+header {
+    background:var(--card-color);
+    padding:16px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h2 { color:var(--text-color); }
+
+header button {
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--subtext-color);
+}
+
+/* CONTAINER */
+.container {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    padding:30px 20px;
+}
+
+/* CARD */
+.card {
+    background:var(--card-color);
+    padding:25px;
+    width:100%;
+    max-width:600px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card h3 { color:var(--text-color); margin-bottom:10px; }
+
+.card p {
+    color:var(--subtext-color);
+    font-size:14px;
+    margin-bottom:20px;
+}
+
+/* INPUT */
+select, textarea {
+    width:100%;
+    padding:10px;
+    margin-bottom:15px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:inherit;
+}
+
+/* BUTTON */
+button.primary-btn {
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:var(--primary);
+    color:white;
+    cursor:pointer;
+}
+
+/* ⭐ STARS */
+.stars {
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+    font-size:26px;
+    cursor:pointer;
+}
+
+.star {
+    color:#ccc;
+    transition:0.2s;
+}
+
+.star.active {
+    color:gold;
+}
+
+#message {
+    margin-top:10px;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="goHome()">Home</button>
+    <h2>Feedback</h2>
+    <button onclick="toggleDarkMode()">🌙</button>
+</header>
+
+<div class="container">
+<div class="card">
+
+<h3>Share Your Experience 💬</h3>
+<p>Your feedback helps us improve our platform.</p>
+
+<!-- ⭐ Rating -->
+<div class="stars">
+    <span class="star" data-value="1">★</span>
+    <span class="star" data-value="2">★</span>
+    <span class="star" data-value="3">★</span>
+    <span class="star" data-value="4">★</span>
+    <span class="star" data-value="5">★</span>
+</div>
+
+<!-- Experience -->
+<select id="experience">
+    <option value="">Overall Experience</option>
+    <option value="excellent">Excellent</option>
+    <option value="good">Good</option>
+    <option value="average">Average</option>
+    <option value="poor">Poor</option>
+</select>
+
+<!-- Feedback -->
+<textarea id="feedbackText" rows="4" placeholder="Write your feedback..."></textarea>
+
+<button class="primary-btn" onclick="submitFeedback()">Submit Feedback</button>
+
+<p id="message"></p>
+
+</div>
+</div>
+
+<script>
+let rating = 0;
+
+/* 🌙 DARK MODE */
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+/* TOGGLE */
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode",
+        document.body.classList.contains("dark") ? "enabled" : "disabled");
+}
+
+/* HOME */
+function goHome() {
+    window.location.href = "index.htm";
+}
+
+/* ⭐ STARS */
+document.querySelectorAll(".star").forEach((star, index) => {
+    star.addEventListener("click", () => {
+        rating = index + 1;
+
+        document.querySelectorAll(".star").forEach(s => s.classList.remove("active"));
+
+        for (let i = 0; i < rating; i++) {
+            document.querySelectorAll(".star")[i].classList.add("active");
+        }
+    });
+});
+
+/* SUBMIT */
+function submitFeedback() {
+    const experience = document.getElementById("experience").value;
+    const feedback = document.getElementById("feedbackText").value;
+    const msg = document.getElementById("message");
+
+    if (!rating || !experience || !feedback) {
+        msg.style.color = "red";
+        msg.textContent = "Please fill all fields.";
+        return;
+    }
+
+    const data = { rating, experience, feedback };
+
+    fetch("http://127.0.0.1:8000/feedback/submit/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        msg.style.color = "green";
+        msg.textContent = "Feedback submitted successfully 🎉";
+    })
+    .catch(() => {
+        msg.style.color = "red";
+        msg.textContent = "Error submitting feedback ❌";
+    });
+}
+</script>
+
+</body>
+</html>
