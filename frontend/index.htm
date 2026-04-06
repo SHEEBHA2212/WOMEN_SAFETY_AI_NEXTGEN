@@ -32,26 +32,23 @@ body.dark {
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-color);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+body { font-family: 'Inter', sans-serif;
+    background: var(--bg-color); 
+    min-height: 100vh; display: flex; 
+    justify-content: center; 
+    align-items: center; }
 
 /* Main card */
 .card {
-    background: var(--card-color);
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(14px);
     width: 100%;
     max-width: 500px;
     padding: 45px 30px;
     border-radius: 18px;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
 }
-
 h1 {
     font-size: 30px;
     color: var(--text-color);
@@ -87,18 +84,18 @@ a { text-decoration: none; }
 
 /* ALL FOUR BLUE */
 .primary {
-    background: var(--primary);
-    color: white;
+    background: linear-gradient(135deg,#6a8ea0,#4e6f7a);
+    color:white;
 }
 
 .emergency {
-    background: var(--emergency);
-    color: white;
+    background: linear-gradient(135deg,#ff6b6b,#e53935);
+    color:white;
 }
 
 .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.25);
 }
 
 /* Emergency bottom */
