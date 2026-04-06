@@ -8,193 +8,298 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-:root {
-    --bg-color: #eef4f1;
-    --card-color: #fdfcf9;
-    --text-color: #2e2e2e;
-    --subtext-color: #666;
-    --primary: #5f7c8a;
-    --emergency: #e57373;
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+--text:#2e2e2e;
+--sub:#666;
+--card:rgba(255,255,255,0.75);
+--primary:#5f7c8a;
+--emergency:#e57373;
 }
 
-body.dark {
-    --bg-color: #202123;
-    --card-color: #2a2b2e;
-    --text-color: #ececec;
-    --subtext-color: #b4b4b4;
-    --primary: #7fa6b3;
-    --emergency: #ff7a7a;
+body.dark{
+--text:#fff;
+--sub:#ccc;
+--card:rgba(30,30,30,0.8);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+body{
+font-family:'Inter',sans-serif;
+min-height:100vh;
+background:url("../images/bg5.jpeg") center/cover no-repeat;
+color:var(--text);
 }
 
-body { font-family: 'Inter', sans-serif;
-    background: var(--bg-color); 
-    min-height: 100vh; display: flex; 
-    justify-content: center; 
-    align-items: center; }
-
-/* Main card */
-.card {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(14px);
-    width: 100%;
-    max-width: 500px;
-    padding: 45px 30px;
-    border-radius: 18px;
-    text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-}
-h1 {
-    font-size: 30px;
-    color: var(--text-color);
-    margin-bottom: 10px;
+body::before{
+content:"";
+position:fixed;
+top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.3);
+z-index:0;
+pointer-events: none;
 }
 
-.subtitle {
-    font-size: 15px;
-    color: var(--subtext-color);
-    margin-bottom: 30px;
+header{
+position:relative;
+z-index:10;
+width:100%;
+padding:15px 20px;
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(10px);
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
-/* 2×2 grid buttons */
-.grid-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 20px;
+.menu{font-size:22px;cursor:pointer;}
+.title{font-weight:600;font-size:18px;}
+
+.toggle{
+cursor:pointer;
+padding:6px 10px;
+border-radius:8px;
+background:rgba(255,255,255,0.5);
 }
 
-a { text-decoration: none; }
-
-.btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.25s ease;
+.profile-box{
+position:absolute;
+top:60px;
+left:20px;
+background:var(--card);
+backdrop-filter:blur(10px);
+padding:15px;
+border-radius:12px;
+width:230px;
+display:none;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+animation:fadeIn 0.3s ease;
+z-index: 9999;
 }
 
-/* ALL FOUR BLUE */
-.primary {
-    background: linear-gradient(135deg,#6a8ea0,#4e6f7a);
-    color:white;
+.profile-box p{margin:5px 0;font-size:14px;}
+
+.profile-box button{
+width:100%;
+margin-top:8px;
+padding:10px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:500;
 }
 
-.emergency {
-    background: linear-gradient(135deg,#ff6b6b,#e53935);
-    color:white;
+.profile-box button:first-of-type{
+background:#5f7c8a;
+color:white;
 }
 
-.btn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.25);
+.profile-box button:last-of-type{
+background:#e57373;
+color:white;
 }
 
-/* Emergency bottom */
-.emergency-wrap {
-    margin-top: 10px;
+.container{
+position:relative;
+z-index:1;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:60px 20px;
 }
 
-/* Disclaimer */
-.disclaimer {
-    margin-top: 25px;
-    font-size: 12px;
-    color: var(--subtext-color);
+.card{
+background:var(--card);
+backdrop-filter:blur(15px);
+width:100%;
+max-width:500px;
+padding:40px;
+border-radius:20px;
+text-align:center;
+box-shadow:0 20px 40px rgba(0,0,0,0.3);
+animation:fadeIn 0.8s ease;
 }
 
-/* Top buttons */
-.escape-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #4a4a4a;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    cursor: pointer;
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(30px);} 
+to{opacity:1;transform:translateY(0);} 
 }
 
-.toggle-btn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: #d9e4df;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    cursor: pointer;
+h1{margin-bottom:10px;}
+.subtitle{margin-bottom:25px;color:var(--sub);}
+
+.grid-buttons{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
 }
 
-body.dark .toggle-btn {
-    background: #3a3b3f;
-    color: white;
+.btn{
+padding:14px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+transition:0.3s;
 }
 
-/* Mobile */
-@media (max-width: 480px) {
-    .grid-buttons {
-        grid-template-columns: 1fr;
-    }
+.primary{
+background:linear-gradient(135deg,#6a8ea0,#4e6f7a);
+color:white;
 }
+
+.emergency{
+background:linear-gradient(135deg,#ff6b6b,#e53935);
+color:white;
+padding:18px;
+font-size:18px;
+font-weight:600;
+width:100%;
+animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1);} 
+50%{transform:scale(1.05);} 
+100%{transform:scale(1);} 
+}
+
+.btn:hover{
+transform:translateY(-3px) scale(1.03);
+box-shadow:0 10px 20px rgba(0,0,0,0.3);
+}
+
+footer{
+position:relative;
+z-index:1;
+text-align:center;
+padding:20px;
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(10px);
+font-size:13px;
+line-height:1.6;
+}
+
+footer strong{display:block;margin-top:10px;}
+
 </style>
 </head>
 
 <body>
 
-<button class="toggle-btn" onclick="toggleDarkMode()">🌙 Mode</button>
-<button class="escape-btn" onclick="quickExit()">Quick Exit</button>
+<header>
+<div class="menu" onclick="toggleProfile()">☰</div>
+<div class="title">Safe Space</div>
+<div class="toggle" onclick="toggleDarkMode()">🌙</div>
+</header>
 
-<div class="card">
-    <h1>Safe Space</h1>
-    <p class="subtitle">Confidential help. Safe reporting. Immediate support.</p>
-
-    <!-- 4 BLUE BOXES -->
-    <div class="grid-buttons">
-        <a href="chat.htm"><button class="btn primary">💬 Talk to Support</button></a>
-        <a href="complaint.htm"><button class="btn primary">📝 File Complaint</button></a>
-        <a href="legal.htm"><button class="btn primary">⚖️ Legal Help</button></a>
-        <a href="directory.htm"><button class="btn primary">📍 Nearby Help</button></a>
-    </div>
-
-    <!-- EMERGENCY RED -->
-    <div class="emergency-wrap">
-        <a href="emergency.htm"><button class="btn emergency">🚨 Emergency</button></a>
-    </div>
-
-    <p class="disclaimer">
-        This tool provides general guidance and is not a substitute for professional legal, medical, or emergency services.
-    </p>
+<div class="profile-box" id="profileBox">
+<p><b>Name:</b> <span id="pName"></span></p>
+<p><b>Email:</b> <span id="pEmail"></span></p>
+<p><b>Phone:</b> <span id="pPhone"></span></p>
+<button type="button" onclick="logout()">Logout</button>
+<button type="button" onclick="deleteAccount()">Delete Account</button>
 </div>
 
+<div class="container">
+<div class="card">
+
+<h1>Safe Space</h1>
+<p class="subtitle">Confidential help. Safe reporting. Immediate support.</p>
+
+<div class="grid-buttons">
+<button class="btn primary" onclick="checkLogin('chat.htm')">💬 Talk to Support</button>
+<button class="btn primary" onclick="checkLogin('complaint.htm')">📝 File Complaint</button>
+<button class="btn primary" onclick="checkLogin('legal.htm')">⚖️ Legal Help</button>
+<button class="btn primary" onclick="checkLogin('directory.htm')">📍 Nearby Help</button>
+</div>
+
+<div style="margin-top:15px;">
+<a href="emergency.htm"><button class="btn emergency">🚨 Emergency</button></a>
+</div>
+
+</div>
+</div>
+
+<footer>
+<strong>About Us</strong>
+Safe Space is a women safety platform designed to provide confidential help,
+secure reporting, and immediate assistance during emergencies.
+We aim to empower individuals with access to legal support,
+trusted contacts, and real-time help resources.
+
+<strong>Contact Us</strong>
+For queries or support, reach out to our team:
+📧 support@safespace.com
+📧 helpdesk@safespace.com
+
+© 2026 Safe Space | Women Safety Initiative
+</footer>
+
 <script>
-function quickExit() {
-    sessionStorage.clear();
+
+function toggleProfile(){
+let box = document.getElementById("profileBox");
+box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+function checkLogin(page){
+let loggedIn = localStorage.getItem("loggedIn");
+if(loggedIn === "true"){
+window.location.href = page;
+}else{
+window.location.href = "login.htm";
+}
+}
+
+function logout(){
+console.log("Logout clicked"); // DEBUG
+
+if(confirm("Are you sure you want to logout?")){
     localStorage.clear();
-    window.location.replace("https://www.google.com");
+    window.location.replace("login.htm");
+}
 }
 
-function toggleDarkMode() {
-    document.body.classList.toggle("dark");
-    localStorage.setItem(
-        "darkMode",
-        document.body.classList.contains("dark") ? "enabled" : "disabled"
-    );
+function deleteAccount(){
+console.log("Delete clicked"); // DEBUG
+
+if(confirm("Delete your account permanently?")){
+    localStorage.clear();
+    window.location.replace("login.htm");
+}
 }
 
-window.onload = function () {
-    if (localStorage.getItem("darkMode") === "enabled") {
-        document.body.classList.add("dark");
-    }
+function toggleDarkMode(){
+document.body.classList.toggle("dark");
+localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
+}
+
+window.onload = function(){
+
+let loggedIn = localStorage.getItem("loggedIn");
+
+/* FORCE LOGIN */
+if(loggedIn !== "true"){
+    window.location.replace("login.htm");
+    return;
+}
+
+/* LOAD USER DATA */
+let name = localStorage.getItem("name");
+let email = localStorage.getItem("email");
+let phone = localStorage.getItem("mobile");
+
+document.getElementById("pName").innerText = name;
+document.getElementById("pEmail").innerText = email;
+document.getElementById("pPhone").innerText = phone;
+
+/* DARK MODE */
+if(localStorage.getItem("darkMode") === "enabled"){
+    document.body.classList.add("dark");
+}
 };
+
 </script>
 
 </body>

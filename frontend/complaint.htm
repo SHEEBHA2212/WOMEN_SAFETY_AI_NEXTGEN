@@ -200,13 +200,13 @@ function submitComplaint() {
         return;
     }
 
-    fetch("http://127.0.0.1:8000/complaint/submit/", {
+    fetch("http://127.0.0.1:8000/api/complaints/create/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            issue: issue,
+            issue_type: issue,
             location: location,
             description: description,
             contact: contact
