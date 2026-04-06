@@ -38,7 +38,7 @@ position:fixed;
 top:0;left:0;width:100%;height:100%;
 background:rgba(0,0,0,0.3);
 z-index:0;
-pointer-events: none;
+pointer-events:none;
 }
 
 header{
@@ -75,7 +75,7 @@ width:230px;
 display:none;
 box-shadow:0 10px 25px rgba(0,0,0,0.3);
 animation:fadeIn 0.3s ease;
-z-index: 9999;
+z-index:9999;
 }
 
 .profile-box p{margin:5px 0;font-size:14px;}
@@ -122,8 +122,8 @@ animation:fadeIn 0.8s ease;
 }
 
 @keyframes fadeIn{
-from{opacity:0;transform:translateY(30px);} 
-to{opacity:1;transform:translateY(0);} 
+from{opacity:0;transform:translateY(30px);}
+to{opacity:1;transform:translateY(0);}
 }
 
 h1{margin-bottom:10px;}
@@ -148,6 +148,19 @@ background:linear-gradient(135deg,#6a8ea0,#4e6f7a);
 color:white;
 }
 
+.feedback-btn {
+background: rgba(95,124,138,0.15);
+color: var(--text);
+border: 1.5px solid rgba(95,124,138,0.4);
+grid-column: span 2;
+font-size: 15px;
+font-weight: 500;
+}
+
+.feedback-btn:hover {
+background: rgba(95,124,138,0.25);
+}
+
 .emergency{
 background:linear-gradient(135deg,#ff6b6b,#e53935);
 color:white;
@@ -159,9 +172,9 @@ animation:pulse 1.5s infinite;
 }
 
 @keyframes pulse{
-0%{transform:scale(1);} 
-50%{transform:scale(1.05);} 
-100%{transform:scale(1);} 
+0%{transform:scale(1);}
+50%{transform:scale(1.05);}
+100%{transform:scale(1);}
 }
 
 .btn:hover{
@@ -181,6 +194,17 @@ line-height:2.5em;
 }
 
 footer strong{display:block;margin-top:10px; font-size:20px;}
+
+footer a {
+color: inherit;
+text-decoration: none;
+opacity: 0.8;
+}
+
+footer a:hover {
+opacity: 1;
+text-decoration: underline;
+}
 
 </style>
 </head>
@@ -204,14 +228,15 @@ footer strong{display:block;margin-top:10px; font-size:20px;}
 <div class="container">
 <div class="card">
 
-<h1>Safe Space</h1>
+<h1>Hi, <span id="welcomeName"></span> 👋</h1>
 <p class="subtitle">Confidential help. Safe reporting. Immediate support.</p>
 
 <div class="grid-buttons">
-<button class="btn primary" onclick="checkLogin('chat.htm')">💬 Talk to Support</button>
-<button class="btn primary" onclick="checkLogin('complaint.htm')">📝 File Complaint</button>
-<button class="btn primary" onclick="checkLogin('legal.htm')">⚖️ Legal Help</button>
-<button class="btn primary" onclick="checkLogin('directory.htm')">📍 Nearby Help</button>
+    <button class="btn primary" onclick="checkLogin('chat.htm')">💬 Talk to Support</button>
+    <button class="btn primary" onclick="checkLogin('complaint.htm')">📝 File Complaint</button>
+    <button class="btn primary" onclick="checkLogin('legal.htm')">⚖️ Legal Help</button>
+    <button class="btn primary" onclick="checkLogin('directory.htm')">📍 Nearby Help</button>
+    <button class="btn feedback-btn" onclick="checkLogin('feedback.htm')">⭐ Share Feedback</button>
 </div>
 
 <div style="margin-top:15px;">
@@ -233,71 +258,77 @@ For queries or support, reach out to our team:
 📧 support@safespace.com
 📧 helpdesk@safespace.com
 
+<br><br>
+<a href="feedback.html">⭐ Give Feedback</a>
+
+<br><br>
 © 2026 Safe Space | Women Safety Initiative
 </footer>
 
 <script>
 
 function toggleProfile(){
-let box = document.getElementById("profileBox");
-box.style.display = box.style.display === "block" ? "none" : "block";
+    let box = document.getElementById("profileBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
 }
 
+document.addEventListener("click", function(e){
+    const box  = document.getElementById("profileBox");
+    const menu = document.querySelector(".menu");
+    if(!box.contains(e.target) && !menu.contains(e.target)){
+        box.style.display = "none";
+    }
+});
+
 function checkLogin(page){
-let loggedIn = localStorage.getItem("loggedIn");
-if(loggedIn === "true"){
-window.location.href = page;
-}else{
-window.location.href = "login.htm";
-}
+    let loggedIn = localStorage.getItem("loggedIn");
+    if(loggedIn === "true"){
+        window.location.href = page;
+    }else{
+        window.location.href = "login.htm";
+    }
 }
 
 function logout(){
-console.log("Logout clicked"); // DEBUG
-
-if(confirm("Are you sure you want to logout?")){
-    localStorage.clear();
-    window.location.replace("login.htm");
-}
+    if(confirm("Are you sure you want to logout?")){
+        localStorage.clear();
+        window.location.replace("login.htm");
+    }
 }
 
 function deleteAccount(){
-console.log("Delete clicked"); // DEBUG
-
-if(confirm("Delete your account permanently?")){
-    localStorage.clear();
-    window.location.replace("login.htm");
-}
+    if(confirm("Delete your account permanently?")){
+        localStorage.clear();
+        window.location.replace("login.htm");
+    }
 }
 
 function toggleDarkMode(){
-document.body.classList.toggle("dark");
-localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
 }
 
 window.onload = function(){
 
-let loggedIn = localStorage.getItem("loggedIn");
+    let loggedIn = localStorage.getItem("loggedIn");
 
-/* FORCE LOGIN */
-if(loggedIn !== "true"){
-    window.location.replace("login.htm");
-    return;
-}
+    if(loggedIn !== "true"){
+        window.location.replace("login.htm");
+        return;
+    }
 
-/* LOAD USER DATA */
-let name = localStorage.getItem("name");
-let email = localStorage.getItem("email");
-let phone = localStorage.getItem("mobile");
+    let name  = localStorage.getItem("name");
+    let email = localStorage.getItem("email");
+    let phone = localStorage.getItem("mobile");
 
-document.getElementById("pName").innerText = name;
-document.getElementById("pEmail").innerText = email;
-document.getElementById("pPhone").innerText = phone;
+    document.getElementById("pName").innerText       = name;
+    document.getElementById("pEmail").innerText      = email;
+    document.getElementById("pPhone").innerText      = phone;
+    document.getElementById("welcomeName").innerText = name || "there";
 
-/* DARK MODE */
-if(localStorage.getItem("darkMode") === "enabled"){
-    document.body.classList.add("dark");
-}
+    if(localStorage.getItem("darkMode") === "enabled"){
+        document.body.classList.add("dark");
+    }
 };
 
 </script>
