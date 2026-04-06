@@ -42,8 +42,14 @@ header {
     align-items:center;
 }
 
-header h2 { color:var(--text-color); font-size:18px; }
-header button { background:none; border:none; cursor:pointer; color:var(--subtext-color); }
+header h2 { color:var(--text-color); }
+
+header button {
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--subtext-color);
+}
 
 .container {
     flex:1;
@@ -56,15 +62,25 @@ header button { background:none; border:none; cursor:pointer; color:var(--subtex
     background:var(--card-color);
     padding:25px;
     width:100%;
-    max-width:550px;
+    max-width:600px;
     border-radius:12px;
     box-shadow:0 4px 10px rgba(0,0,0,0.05);
 }
 
 .card h3 { color:var(--text-color); margin-bottom:10px; }
-.card p { color:var(--subtext-color); font-size:14px; margin-bottom:20px; }
 
-select, input, textarea {
+.card p {
+    color:var(--subtext-color);
+    font-size:14px;
+    margin-bottom:20px;
+}
+
+.card h4 {
+    color: var(--text-color);
+    margin-top: 15px;
+}
+
+select, input {
     width:100%;
     padding:10px;
     margin-bottom:15px;
@@ -82,30 +98,50 @@ button.primary-btn {
     cursor:pointer;
 }
 
-button.primary-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+/* GRID */
+.advocate-grid {
+    display:flex;
+    gap:15px;
+    margin:20px 0;
 }
 
-.advice-box {
-    margin-top:20px;
-    padding:16px;
-    border-radius:8px;
-    background:rgba(0,0,0,0.06);
-    color:var(--text-color);
-    font-size:14px;
-    line-height:1.6;
-    display:none;
+/* CARD */
+.adv-card {
+    flex:1;
+    background:#ffffff;
+    border-radius:12px;
+    padding:15px;
+    text-align:center;
+    cursor:pointer;
+    border:2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
-body.dark .advice-box {
-    background:rgba(255,255,255,0.08);
+.adv-card:hover {
+    transform:translateY(-5px);
 }
 
-.ngo-list {
-    margin-top:12px;
+/* ✅ GREEN SELECTED STATE */
+.adv-card.selected {
+    background: linear-gradient(135deg, #28a745, #218838);
+    border: 2px solid #28a745;
+}
+
+/* text becomes white */
+.adv-card.selected h5,
+.adv-card.selected p {
+    color: white;
+}
+
+.adv-card h5 {
+    margin:10px 0 5px;
+    color:#222;
+}
+
+.adv-card p {
     font-size:13px;
-    line-height:1.6;
+    color:gray;
 }
 
 #formMessage {
@@ -127,7 +163,10 @@ body.dark .advice-box {
 <div class="card">
 
 <h3>Know Your Legal Options</h3>
-<p>Select your issue to receive legal guidance and helpful NGO contacts.</p>
+<p>Fill your details and get matched with an advocate.</p>
+
+<input type="text" id="name" placeholder="Your Name">
+<input type="text" id="phone" placeholder="Phone Number">
 
 <select id="issueSelect">
     <option value="">Select Issue</option>
@@ -138,21 +177,17 @@ body.dark .advice-box {
     <option value="cyber">Cyber Crime</option>
 </select>
 
-<button class="primary-btn" onclick="showAdvice()">Get Legal Guidance</button>
+<button class="primary-btn" onclick="getAdvocates()">Find Advocates</button>
 
-<div id="adviceBox" class="advice-box"></div>
+<div id="advocateSection" style="display:none;">
+    <h4>Select an Advocate</h4>
 
-<hr style="margin:25px 0;">
+    <div id="advocateList" class="advocate-grid"></div>
 
-<h3>Request Legal Assistance</h3>
+    <button class="primary-btn" onclick="submitCase()">Confirm Selection</button>
+</div>
 
-<form id="legalForm">
-    <input type="text" id="name" placeholder="Your Name" required>
-    <input type="text" id="phone" placeholder="Phone Number" required>
-    <textarea id="description" placeholder="Briefly describe your issue" required></textarea>
-    <button type="submit" class="primary-btn" id="submitBtn">Submit Request</button>
-    <p id="formMessage"></p>
-</form>
+<p id="formMessage"></p>
 
 </div>
 </div>
@@ -174,122 +209,101 @@ function goHome() {
     window.location.href = "index.htm";
 }
 
-function showAdvice() {
+let formData = {};
+let selectedAdvocate = "";
+
+function getAdvocates() {
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
     const issue = document.getElementById("issueSelect").value;
-    const box = document.getElementById("adviceBox");
-
-    if (!issue) {
-        alert("Please select an issue.");
-        return;
-    }
-
-    let advice = "";
-
-    if (issue === "harassment") {
-        advice = `File a complaint with local police or workplace authority. Keep evidence safe.
-        <div class="ngo-list">
-        Helpful NGOs:<br>
-        • National Commission for Women – 181<br>
-        • Sakshi NGO
-        </div>`;
-    }
-    else if (issue === "bullying") {
-        advice = `Report to school/college authorities. Maintain proof.
-        <div class="ngo-list">
-        Helpful NGOs:<br>
-        • Childline India – 1098<br>
-        • Save the Children India
-        </div>`;
-    }
-    else if (issue === "domestic") {
-        advice = `You are protected under domestic violence laws. Call 181.
-        <div class="ngo-list">
-        Helpful NGOs:<br>
-        • Sneha Foundation<br>
-        • Jagori Women Support
-        </div>`;
-    }
-    else if (issue === "discrimination") {
-        advice = `Report to grievance cell or human rights commission.
-        <div class="ngo-list">
-        Helpful NGOs:<br>
-        • Human Rights Law Network<br>
-        • National Human Rights Commission
-        </div>`;
-    }
-    else if (issue === "cyber") {
-        advice = `Report cyber crime at 1930. Save screenshots.
-        <div class="ngo-list">
-        Helpful NGOs:<br>
-        • Cyber Peace Foundation<br>
-        • Digital India Cyber Safety
-        </div>`;
-    }
-
-    box.style.display = "block";
-    box.innerHTML = advice;
-}
-
-/* Backend Connection + Validation */
-document.getElementById("legalForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const submitBtn = document.getElementById("submitBtn");
     const messageBox = document.getElementById("formMessage");
 
-    const formData = {
-        name: document.getElementById("name").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        issue: document.getElementById("issueSelect").value,
-        description: document.getElementById("description").value.trim()
-    };
-
-    // Validate issue
-    if (!formData.issue) {
+    if (!name || !phone || !issue) {
         messageBox.style.color = "red";
-        messageBox.textContent = "Please select an issue.";
+        messageBox.textContent = "Please fill all fields.";
         return;
     }
 
-    // Validate phone
-    if (!/^[0-9]{10}$/.test(formData.phone)) {
+    if (!/^[0-9]{10}$/.test(phone)) {
         messageBox.style.color = "red";
         messageBox.textContent = "Enter valid 10 digit phone number.";
         return;
     }
 
-    try {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Submitting...";
-        messageBox.textContent = "";
+    formData = { name, phone, issue };
 
-        const response = await fetch("http://localhost:5000/api/legal-help", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData)
-        });
+    const advocates = {
+        harassment: [
+            {name: "Priya Sharma", degree: "BA, LLB 👩‍⚖️"},
+            {name: "Meena Rao", degree: "BA, LLB 👩‍⚖️"},
+            {name: "Rahul Verma", degree: "BA, LLB 👨‍⚖️"}
+        ],
+        bullying: [
+            {name: "Arjun Verma", degree: "BA, LLB 👨‍⚖️"},
+            {name: "Riya Singh", degree: "BA, LLB 👩‍⚖️"},
+            {name: "Karan Mehta", degree: "BA, LLB 👨‍⚖️"}
+        ],
+        domestic: [
+            {name: "Kavya Iyer", degree: "BA, LLB 👩‍⚖️"},
+            {name: "Neha Kapoor", degree: "BA, LLB 👩‍⚖️"},
+            {name: "Amit Shah", degree: "BA, LLB 👨‍⚖️"}
+        ],
+        discrimination: [
+            {name: "Raj Malhotra", degree: "BA, LLB 👨‍⚖️"},
+            {name: "Ankit Jain", degree: "BA, LLB 👨‍⚖️"},
+            {name: "Pooja Nair", degree: "BA, LLB 👩‍⚖️"}
+        ],
+        cyber: [
+            {name: "Rohit Das", degree: "BA, LLB 👨‍⚖️"},
+            {name: "Sneha Gupta", degree: "BA, LLB 👩‍⚖️"},
+            {name: "Vikram Rao", degree: "BA, LLB 👨‍⚖️"}
+        ]
+    };
 
-        const result = await response.json();
+    const list = advocates[issue];
+    const container = document.getElementById("advocateList");
+    container.innerHTML = "";
 
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit Request";
+    list.forEach(adv => {
+        container.innerHTML += `
+            <div class="adv-card" onclick="selectAdvocate(this, '${adv.name}')">
+                <h5>${adv.name}</h5>
+                <p>${adv.degree}</p>
+            </div>
+        `;
+    });
 
-        if (response.ok) {
-            messageBox.style.color = "green";
-            messageBox.textContent = "Request submitted successfully!";
-            document.getElementById("legalForm").reset();
-        } else {
-            messageBox.style.color = "red";
-            messageBox.textContent = result.error || "Something went wrong.";
-        }
+    document.getElementById("advocateSection").style.display = "block";
+    messageBox.textContent = "";
+}
 
-    } catch (error) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit Request";
+function selectAdvocate(element, name) {
+    document.querySelectorAll(".adv-card").forEach(card => {
+        card.classList.remove("selected");
+    });
+
+    element.classList.add("selected");
+    selectedAdvocate = name;
+}
+
+function submitCase() {
+    const messageBox = document.getElementById("formMessage");
+
+    if (!selectedAdvocate) {
         messageBox.style.color = "red";
-        messageBox.textContent = "Server not reachable. Make sure backend is running.";
+        messageBox.textContent = "Please select an advocate.";
+        return;
     }
-});
+
+    formData.advocate = selectedAdvocate;
+
+    console.log("Final Data:", formData);
+
+    messageBox.style.color = "green";
+    messageBox.textContent = "Case submitted successfully ✅";
+
+    document.getElementById("advocateSection").style.display = "none";
+}
 </script>
 
 </body>
