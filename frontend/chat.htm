@@ -32,14 +32,11 @@ body.dark {
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-color);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    transition: 0.3s ease;
-}
+body { font-family: 'Inter',sans-serif; 
+    background: var(--bg-color); 
+    display: flex; flex-direction: 
+    column; height: 100vh; 
+    transition: 0.3s ease; }
 
 /* Header */
 header {
@@ -76,11 +73,17 @@ header button {
 }
 
 .message {
-    max-width: 75%;
-    padding: 12px 14px;
-    border-radius: 14px;
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 16px;
     font-size: 14px;
     line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(6px)}
+    to{opacity:1; transform:translateY(0)}
 }
 
 .user {
@@ -104,16 +107,19 @@ header button {
 }
 
 .suggest-btn {
-    padding: 6px 12px;
+    padding: 8px 14px;
     font-size: 12px;
-    border-radius: 14px;
+    border-radius: 20px;
     border: none;
     cursor: pointer;
-    background: #d9e4df;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(4px);
+    transition: 0.2s;
 }
 
 .suggest-btn:hover {
-    background: #c7d6d0;
+    transform: translateY(-2px);
+    background: white;
 }
 
 /* Input */
@@ -173,10 +179,10 @@ button.send-btn:hover {
     <button onclick="toggleDarkMode()">🌙</button>
 </header>
 
-<div class="chat-container" id="chat"></div>
+
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="Type your message..." />
+    <input type="text" id="userInput" placeholder="Type command like @help" />
     <button class="send-btn" onclick="sendMessage()">
         <svg viewBox="0 0 24 24">
             <path d="M2 21L23 12 2 3v7l15 2-15 2z"/>
@@ -184,7 +190,27 @@ button.send-btn:hover {
     </button>
 </div>
 
+<div class="chat-container" id="chat"></div>
+<div class="suggestion-container">
+<button class="suggest-btn" onclick="quickCommand('@help')">@help</button>
+<button class="suggest-btn" onclick="quickCommand('@complaint')">@complaint</button>
+<button class="suggest-btn" onclick="quickCommand('@status')">@status</button>
+<button class="suggest-btn" onclick="quickCommand('@emergency')">@emergency</button>
+<button class="suggest-btn" onclick="quickCommand('@contact')">@contact</button>
+<button class="suggest-btn" onclick="quickCommand('@feedback')">@feedback</button>
+<button class="suggest-btn" onclick="quickCommand('@report')">@report</button>
+<button class="suggest-btn" onclick="quickCommand('@safety')">@safety</button>
+<button class="suggest-btn" onclick="quickCommand('@nearestpolice')">@nearestpolice</button>
+
+
+</div>
+
 <script>
+
+function quickCommand(command){
+    document.getElementById("userInput").value = command;
+    sendMessage();
+}    
 
 /* LOAD SAVED THEME */
 window.onload = function() {
@@ -213,9 +239,24 @@ function sendMessage() {
 
     showTyping();
 
-    setTimeout(() => {
-        respond(userText.toLowerCase());
-    }, 1000);
+    fetch("http://127.0.0.1:8000/api/support/chatbot/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: userText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        removeTyping();
+        addMessage(data.reply, "bot");
+    })
+    .catch(error => {
+        removeTyping();
+        addMessage("Support system is currently unavailable.", "bot");
+    });
 }
 
 function showTyping() {
@@ -230,42 +271,6 @@ function showTyping() {
 function removeTyping() {
     const typing = document.getElementById("typing");
     if (typing) typing.remove();
-}
-
-function respond(message) {
-    removeTyping();
-
-    let reply = "";
-    let suggestionHTML = "";
-
-    if (message.includes("emergency") || message.includes("danger") || message.includes("urgent")) {
-        reply = "If you are in immediate danger, please contact emergency services right away.";
-        suggestionHTML = `
-        <div class="suggestion-container">
-            <button class="suggest-btn" onclick="location.href='emergency.htm'">🚨 Emergency</button>
-        </div>`;
-    }
-
-    else if (message.includes("complaint") || message.includes("report")) {
-        reply = "You can file a complaint securely.";
-        suggestionHTML = `
-        <div class="suggestion-container">
-            <button class="suggest-btn" onclick="location.href='complaint.htm'">Go to Complaint</button>
-        </div>`;
-    }
-
-    else {
-        reply = "I'm here to listen. How can I assist you?";
-    }
-
-    addMessage(reply, "bot");
-
-    if (suggestionHTML !== "") {
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = suggestionHTML;
-        chat.appendChild(wrapper);
-        chat.scrollTop = chat.scrollHeight;
-    }
 }
 
 function goHome() {
@@ -286,6 +291,14 @@ function toggleDarkMode() {
 document.getElementById("userInput").addEventListener("keypress", function(e) {
     if (e.key === "Enter") sendMessage();
 });
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+
+    addMessage("Hello 👋 I'm your Safety Assistant.<br>Type <b>@help</b> to see available commands.", "bot");
+};
+
 </script>
 
 </body>
