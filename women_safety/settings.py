@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'complaint','corsheaders',
     'support',
+    'legal',
 ]
 
 MIDDLEWARE = [
@@ -114,8 +115,10 @@ USE_I18N = True
 USE_TZ = True
 CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
-
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+]
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 

@@ -212,6 +212,7 @@ function goHome() {
 let formData = {};
 let selectedAdvocate = "";
 
+// STEP 1: GET ADVOCATES
 function getAdvocates() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
@@ -277,6 +278,7 @@ function getAdvocates() {
     messageBox.textContent = "";
 }
 
+// STEP 2: SELECT ADVOCATE
 function selectAdvocate(element, name) {
     document.querySelectorAll(".adv-card").forEach(card => {
         card.classList.remove("selected");
@@ -286,6 +288,7 @@ function selectAdvocate(element, name) {
     selectedAdvocate = name;
 }
 
+// STEP 3: SEND TO DJANGO 🚀
 function submitCase() {
     const messageBox = document.getElementById("formMessage");
 
@@ -297,14 +300,29 @@ function submitCase() {
 
     formData.advocate = selectedAdvocate;
 
-    console.log("Final Data:", formData);
+    // 🔥 SEND DATA TO BACKEND
+    fetch("http://127.0.0.1:8000/legal/submit-case/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        messageBox.style.color = "green";
+        messageBox.textContent = data.message;
 
-    messageBox.style.color = "green";
-    messageBox.textContent = "Case submitted successfully ✅";
+        document.getElementById("advocateSection").style.display = "none";
 
-    document.getElementById("advocateSection").style.display = "none";
+        console.log("Response:", data);
+    })
+    .catch(error => {
+        messageBox.style.color = "red";
+        messageBox.textContent = "Submission failed ❌";
+        console.error(error);
+    });
 }
 </script>
-
 </body>
 </html>
