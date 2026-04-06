@@ -77,9 +77,10 @@ header button {
 
 .card h4 {
     color: var(--text-color);
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
+/* FORM */
 select, input {
     width:100%;
     padding:10px;
@@ -98,14 +99,13 @@ button.primary-btn {
     cursor:pointer;
 }
 
-/* GRID */
+/* ADVOCATE GRID */
 .advocate-grid {
     display:flex;
     gap:15px;
     margin:20px 0;
 }
 
-/* CARD */
 .adv-card {
     flex:1;
     background:#ffffff;
@@ -114,7 +114,7 @@ button.primary-btn {
     text-align:center;
     cursor:pointer;
     border:2px solid transparent;
-    transition: all 0.3s ease;
+    transition:0.3s;
     box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
@@ -122,27 +122,62 @@ button.primary-btn {
     transform:translateY(-5px);
 }
 
-/* ✅ GREEN SELECTED STATE */
 .adv-card.selected {
     background: linear-gradient(135deg, #28a745, #218838);
     border: 2px solid #28a745;
 }
 
-/* text becomes white */
 .adv-card.selected h5,
 .adv-card.selected p {
-    color: white;
+    color:white;
 }
 
-.adv-card h5 {
-    margin:10px 0 5px;
-    color:#222;
+/* 🔥 CASE CARDS */
+.case-card {
+    background: var(--card-color);
+    border-radius: 12px;
+    padding: 15px 18px;
+    margin: 12px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-left: 6px solid gray;
+    transition: 0.3s;
 }
 
-.adv-card p {
-    font-size:13px;
-    color:gray;
+.case-card:hover {
+    transform: translateY(-3px);
 }
+
+.case-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+}
+
+.case-name {
+    font-weight:600;
+    font-size:16px;
+    color:var(--text-color);
+}
+
+.case-details {
+    font-size:14px;
+    color:var(--subtext-color);
+    margin:3px 0;
+}
+
+/* STATUS BADGE */
+.status-badge {
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    color:white;
+}
+
+.pending { background:#f0ad4e; }
+.taken { background:#5bc0de; }
+.resolved { background:#5cb85c; }
 
 #formMessage {
     margin-top:10px;
@@ -181,13 +216,14 @@ button.primary-btn {
 
 <div id="advocateSection" style="display:none;">
     <h4>Select an Advocate</h4>
-
     <div id="advocateList" class="advocate-grid"></div>
-
     <button class="primary-btn" onclick="submitCase()">Confirm Selection</button>
 </div>
 
 <p id="formMessage"></p>
+
+<h4>My Cases</h4>
+<div id="caseList"></div>
 
 </div>
 </div>
@@ -197,6 +233,7 @@ window.onload = function() {
     if (localStorage.getItem("darkMode") === "enabled") {
         document.body.classList.add("dark");
     }
+    loadCases();
 };
 
 function toggleDarkMode() {
@@ -212,7 +249,7 @@ function goHome() {
 let formData = {};
 let selectedAdvocate = "";
 
-// STEP 1: GET ADVOCATES
+/* ADVOCATES */
 function getAdvocates() {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
@@ -234,34 +271,14 @@ function getAdvocates() {
     formData = { name, phone, issue };
 
     const advocates = {
-        harassment: [
-            {name: "Priya Sharma", degree: "BA, LLB 👩‍⚖️"},
-            {name: "Meena Rao", degree: "BA, LLB 👩‍⚖️"},
-            {name: "Rahul Verma", degree: "BA, LLB 👨‍⚖️"}
-        ],
         bullying: [
             {name: "Arjun Verma", degree: "BA, LLB 👨‍⚖️"},
             {name: "Riya Singh", degree: "BA, LLB 👩‍⚖️"},
             {name: "Karan Mehta", degree: "BA, LLB 👨‍⚖️"}
-        ],
-        domestic: [
-            {name: "Kavya Iyer", degree: "BA, LLB 👩‍⚖️"},
-            {name: "Neha Kapoor", degree: "BA, LLB 👩‍⚖️"},
-            {name: "Amit Shah", degree: "BA, LLB 👨‍⚖️"}
-        ],
-        discrimination: [
-            {name: "Raj Malhotra", degree: "BA, LLB 👨‍⚖️"},
-            {name: "Ankit Jain", degree: "BA, LLB 👨‍⚖️"},
-            {name: "Pooja Nair", degree: "BA, LLB 👩‍⚖️"}
-        ],
-        cyber: [
-            {name: "Rohit Das", degree: "BA, LLB 👨‍⚖️"},
-            {name: "Sneha Gupta", degree: "BA, LLB 👩‍⚖️"},
-            {name: "Vikram Rao", degree: "BA, LLB 👨‍⚖️"}
         ]
     };
 
-    const list = advocates[issue];
+    const list = advocates[issue] || [];
     const container = document.getElementById("advocateList");
     container.innerHTML = "";
 
@@ -275,54 +292,81 @@ function getAdvocates() {
     });
 
     document.getElementById("advocateSection").style.display = "block";
-    messageBox.textContent = "";
 }
 
-// STEP 2: SELECT ADVOCATE
+/* SELECT */
 function selectAdvocate(element, name) {
     document.querySelectorAll(".adv-card").forEach(card => {
         card.classList.remove("selected");
     });
-
     element.classList.add("selected");
     selectedAdvocate = name;
 }
 
-// STEP 3: SEND TO DJANGO 🚀
+/* SUBMIT */
 function submitCase() {
-    const messageBox = document.getElementById("formMessage");
-
     if (!selectedAdvocate) {
-        messageBox.style.color = "red";
-        messageBox.textContent = "Please select an advocate.";
+        alert("Select advocate");
         return;
     }
 
     formData.advocate = selectedAdvocate;
 
-    // 🔥 SEND DATA TO BACKEND
     fetch("http://127.0.0.1:8000/legal/submit-case/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(formData)
     })
-    .then(response => response.json())
+    .then(res=>res.json())
+    .then(()=>loadCases());
+}
+
+/* 🔥 LOAD CASES */
+function loadCases() {
+    fetch("http://127.0.0.1:8000/legal/get-cases/")
+    .then(res=>res.json())
     .then(data => {
-        messageBox.style.color = "green";
-        messageBox.textContent = data.message;
 
-        document.getElementById("advocateSection").style.display = "none";
+        const container = document.getElementById("caseList");
+        container.innerHTML = "";
 
-        console.log("Response:", data);
-    })
-    .catch(error => {
-        messageBox.style.color = "red";
-        messageBox.textContent = "Submission failed ❌";
-        console.error(error);
+        data.forEach(c => {
+
+            let borderColor = "gray";
+            let statusClass = "pending";
+
+            if (c.status === "pending") {
+                borderColor = "#f0ad4e";
+                statusClass = "pending";
+            }
+            if (c.status === "taken") {
+                borderColor = "#5bc0de";
+                statusClass = "taken";
+            }
+            if (c.status === "resolved") {
+                borderColor = "#5cb85c";
+                statusClass = "resolved";
+            }
+
+            container.innerHTML += `
+                <div class="case-card" style="border-left-color:${borderColor}">
+                    
+                    <div class="case-header">
+                        <div class="case-name">${c.name}</div>
+                        <span class="status-badge ${statusClass}">
+                            ${c.status ? c.status.toUpperCase() : "PENDING"}
+                        </span>
+                    </div>
+
+                    <div class="case-details">📌 Issue: ${c.issue}</div>
+                    <div class="case-details">⚖️ Advocate: ${c.advocate}</div>
+
+                </div>
+            `;
+        });
     });
 }
 </script>
+
 </body>
 </html>

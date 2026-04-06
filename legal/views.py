@@ -29,3 +29,11 @@ def submit_case(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST allowed"}, status=400)
+
+def get_cases(request):
+    cases = Case.objects.all().values()
+
+    # convert QuerySet to list
+    case_list = list(cases)
+
+    return JsonResponse(case_list, safe=False)
