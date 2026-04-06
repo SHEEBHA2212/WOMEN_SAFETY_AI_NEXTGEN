@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'complaint','corsheaders',
     'support',
     'legal',
+    'feedback',
 ]
 
 MIDDLEWARE = [

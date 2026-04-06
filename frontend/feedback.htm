@@ -81,7 +81,6 @@ header button {
     margin-bottom:22px;
 }
 
-/* PROGRESS */
 .progress-wrap { margin-bottom: 24px; }
 
 .progress-label {
@@ -107,7 +106,6 @@ header button {
     transition:width 0.4s ease;
 }
 
-/* STEP DOTS */
 .step-dots {
     display:flex;
     justify-content:center;
@@ -124,7 +122,6 @@ header button {
 .dot.active { background:var(--primary); transform:scale(1.3); }
 .dot.done   { background:#28a745; }
 
-/* STEP */
 .step { display:none; animation:fadeIn 0.3s ease; }
 .step.active { display:block; }
 
@@ -142,7 +139,6 @@ header button {
     margin-bottom:16px;
 }
 
-/* RATING TABLE */
 .rating-table {
     width:100%;
     border-collapse:collapse;
@@ -168,17 +164,14 @@ header button {
 }
 
 .rating-table tr:hover td { background:rgba(95,124,138,0.05); }
-
 .rating-table td:first-child { text-align:left; font-size:14px; }
 
-/* RADIO CIRCLES */
 .rating-table input[type="radio"] {
     width:18px; height:18px;
     accent-color:var(--primary);
     cursor:pointer;
 }
 
-/* TEXT INPUTS */
 textarea, input[type="text"], select {
     width:100%;
     padding:10px 12px;
@@ -193,7 +186,6 @@ textarea, input[type="text"], select {
 
 textarea { resize:vertical; min-height:85px; }
 
-/* EMOJI RATING */
 .emoji-row {
     display:flex;
     justify-content:space-around;
@@ -225,7 +217,6 @@ textarea { resize:vertical; min-height:85px; }
     transform:scale(1.15);
 }
 
-/* RECOMMEND BUTTONS */
 .recommend-row {
     display:flex;
     gap:10px;
@@ -250,7 +241,6 @@ textarea { resize:vertical; min-height:85px; }
     color:white;
 }
 
-/* NAVIGATION BUTTONS */
 .btn-row {
     display:flex;
     gap:10px;
@@ -271,6 +261,7 @@ button.primary-btn {
 }
 
 button.primary-btn:hover { opacity:0.9; }
+button.primary-btn:disabled { opacity:0.6; cursor:not-allowed; }
 
 button.secondary-btn {
     flex:1;
@@ -284,7 +275,6 @@ button.secondary-btn {
     transition:0.2s;
 }
 
-/* THANK YOU SCREEN */
 .thankyou {
     text-align:center;
     padding:30px 10px;
@@ -313,11 +303,28 @@ label.field-label {
     margin-bottom:6px;
 }
 
-#formMessage {
-    margin-top:10px;
+.form-message {
+    margin-top:8px;
     font-size:13px;
-    color:red;
+    min-height:18px;
 }
+
+.form-message.error { color: #e53935; }
+.form-message.success { color: #28a745; }
+
+/* Spinner inside button */
+.spinner {
+    display:inline-block;
+    width:14px; height:14px;
+    border:2px solid rgba(255,255,255,0.4);
+    border-top-color:white;
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    vertical-align:middle;
+    margin-right:6px;
+}
+
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 
@@ -421,7 +428,7 @@ label.field-label {
             </tbody>
         </table>
 
-        <p id="formMessage"></p>
+        <p id="formMessage" class="form-message"></p>
         <div class="btn-row">
             <button class="primary-btn" onclick="nextStep(1)">Next →</button>
         </div>
@@ -457,7 +464,7 @@ label.field-label {
             <option value="chat">💬 Talk to Support</option>
         </select>
 
-        <p id="formMessage2"></p>
+        <p id="formMessage2" class="form-message"></p>
         <div class="btn-row">
             <button class="secondary-btn" onclick="prevStep(2)">← Back</button>
             <button class="primary-btn"   onclick="nextStep(2)">Next →</button>
@@ -477,10 +484,10 @@ label.field-label {
         <label class="field-label">Your Name (Optional)</label>
         <input type="text" id="feedbackName" placeholder="Enter your name">
 
-        <p id="formMessage3"></p>
+        <p id="formMessage3" class="form-message"></p>
         <div class="btn-row">
             <button class="secondary-btn" onclick="prevStep(3)">← Back</button>
-            <button class="primary-btn"   onclick="submitFeedback()">Submit Feedback ✅</button>
+            <button class="primary-btn" id="submitBtn" onclick="submitFeedback()">Submit Feedback ✅</button>
         </div>
     </div>
 
@@ -523,7 +530,7 @@ function showStep(n) {
         if (!id) return;
         document.getElementById(id).classList.remove("active");
         const dot = document.getElementById("dot" + i);
-        if (i < n)       dot.className = "dot done";
+        if (i < n)        dot.className = "dot done";
         else if (i === n) dot.className = "dot active";
         else              dot.className = "dot";
     });
@@ -534,27 +541,23 @@ function showStep(n) {
 }
 
 function nextStep(current) {
-    // Validate step 1 — all 6 ratings required
     if (current === 1) {
         const names = ["r1","r2","r3","r4","r5","r6"];
         for (let n of names) {
             if (!document.querySelector(`input[name="${n}"]:checked`)) {
-                document.getElementById("formMessage").style.color = "red";
-                document.getElementById("formMessage").textContent = "Please rate all features before proceeding.";
+                setMessage("formMessage", "Please rate all features before proceeding.", "error");
                 return;
             }
         }
-        document.getElementById("formMessage").textContent = "";
+        setMessage("formMessage", "", "");
     }
 
-    // Validate step 2
     if (current === 2) {
         if (!selectedEmoji || !selectedRec || !document.getElementById("bestFeature").value) {
-            document.getElementById("formMessage2").style.color = "red";
-            document.getElementById("formMessage2").textContent = "Please complete all selections.";
+            setMessage("formMessage2", "Please complete all selections.", "error");
             return;
         }
-        document.getElementById("formMessage2").textContent = "";
+        setMessage("formMessage2", "", "");
     }
 
     showStep(current + 1);
@@ -576,11 +579,17 @@ function selectRec(el, val) {
     selectedRec = val;
 }
 
-function submitFeedback() {
+function setMessage(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "form-message" + (type ? " " + type : "");
+}
+
+async function submitFeedback() {
     const ratings = {};
     ["r1","r2","r3","r4","r5","r6"].forEach(n => {
         const el = document.querySelector(`input[name="${n}"]:checked`);
-        ratings[n] = el ? el.value : null;
+        ratings[n] = el ? parseInt(el.value) : null;
     });
 
     const feedbackData = {
@@ -593,26 +602,44 @@ function submitFeedback() {
         name:        document.getElementById("feedbackName").value
     };
 
-    console.log("Feedback submitted:", feedbackData);
+    // Show loading state
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
+    setMessage("formMessage3", "", "");
 
-    // ✅ Send to Django backend (uncomment when ready)
-    /*
-    fetch("http://127.0.0.1:8000/feedback/submit/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedbackData)
-    })
-    .then(res => res.json())
-    .then(data => console.log("Saved:", data));
-    */
+    try {
+        const response = await fetch("http://127.0.0.1:8000/feedback/submit/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(feedbackData)
+        });
 
-    // Hide all steps, show thank you
-    document.querySelectorAll(".step").forEach(s => s.style.display = "none");
-    document.getElementById("progressFill").style.width = "100%";
-    document.getElementById("stepLabel").textContent = "Completed!";
-    document.getElementById("stepPercent").textContent = "100%";
-    document.querySelectorAll(".dot").forEach(d => d.className = "dot done");
-    document.getElementById("thankyou").style.display = "block";
+        const data = await response.json();
+
+        if (!response.ok) {
+            // Server returned 4xx / 5xx
+            throw new Error(data.message || "Server error. Please try again.");
+        }
+
+        console.log("Saved:", data);
+
+        // Success — show thank you screen
+        document.querySelectorAll(".step").forEach(s => s.style.display = "none");
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepLabel").textContent = "Completed!";
+        document.getElementById("stepPercent").textContent = "100%";
+        document.querySelectorAll(".dot").forEach(d => d.className = "dot done");
+        document.getElementById("thankyou").style.display = "block";
+
+    } catch (error) {
+        console.error("Submission error:", error);
+        setMessage("formMessage3", "⚠️ " + (error.message || "Could not connect to server. Please try again."), "error");
+
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Submit Feedback ✅";
+    }
 }
 </script>
 

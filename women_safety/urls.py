@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/complaints/', include('complaint.urls')),
     path('api/support/', include('support.urls')),
     path('legal/', include('legal.urls')),
+    path("feedback/", include("feedback.urls")),
 ]
