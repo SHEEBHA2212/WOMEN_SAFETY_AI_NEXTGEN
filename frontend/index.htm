@@ -243,6 +243,10 @@ text-decoration: underline;
 <a href="emergency.htm"><button class="btn emergency">🚨 Emergency</button></a>
 </div>
 
+<div style="margin-top:10px;">
+<button class="btn primary" onclick="startListening()">🎙️ Enable Voice Safety</button>
+</div>
+
 </div>
 </div>
 
@@ -329,8 +333,90 @@ window.onload = function(){
     if(localStorage.getItem("darkMode") === "enabled"){
         document.body.classList.add("dark");
     }
-};
 
+    if(localStorage.getItem("voiceEnabled") === "true" && !isListening){
+    startListening();
+}
+};
+// 🎙️ VOICE DETECTION
+let recognition;
+let isListening = false;
+
+function startListening() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Speech Recognition not supported");
+    return;
+  }
+
+  recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    isListening = true;
+    localStorage.setItem("voiceEnabled", "true");
+    alert("🎙️ Voice safety activated");
+  };
+
+  recognition.onresult = function (event) {
+    let transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+
+    if (transcript.includes("help") || transcript.includes("danger")) {
+      alert("🚨 Emergency detected!");
+      startEvidenceRecording();
+    }
+  };
+
+  recognition.onend = function () {
+    if (isListening) recognition.start();
+  };
+
+  recognition.start();
+}
+
+
+// 🎥 RECORDING
+let mediaRecorder;
+let chunks = [];
+let stream;
+
+async function startEvidenceRecording() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+
+    mediaRecorder.start();
+
+    setTimeout(stopRecording, 15000);
+
+  } catch (err) {
+    alert("Camera permission needed!");
+  }
+}
+
+function stopRecording() {
+  mediaRecorder.stop();
+  stream.getTracks().forEach(track => track.stop());
+
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(chunks, { type: "video/webm" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "evidence.webm";
+    a.click();
+
+    chunks = [];
+  };
+}
 </script>
 
 </body>
