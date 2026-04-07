@@ -409,12 +409,29 @@ function stopRecording() {
   mediaRecorder.onstop = () => {
     const blob = new Blob(chunks, { type: "video/webm" });
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "evidence.webm";
-    a.click();
+// ✅ DOWNLOAD (same as before)
+const a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "evidence.webm";
+a.click();
 
-    chunks = [];
+// ✅ SEND TO DJANGO BACKEND
+let formData = new FormData();
+formData.append("video", blob, "evidence.webm");
+
+fetch("http://127.0.0.1:8000/api/upload-video/", {
+    method: "POST",
+    body: formData
+})
+.then(res => res.json())
+.then(data => {
+    console.log("Uploaded:", data);
+})
+.catch(err => {
+    console.error("Upload error:", err);
+});
+
+chunks = [];
   };
 }
 </script>
