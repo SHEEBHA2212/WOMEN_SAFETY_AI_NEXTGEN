@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'legal',
     'feedback',
     'voice',
+    'users',
 ]
 
 MIDDLEWARE = [

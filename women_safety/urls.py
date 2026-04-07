@@ -24,4 +24,5 @@ urlpatterns = [
     path('legal/', include('legal.urls')),
     path("feedback/", include("feedback.urls")),
     path('api/', include('voice.urls')),
+    path("api/", include("users.urls")),
 ]
