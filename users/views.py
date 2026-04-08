@@ -26,8 +26,8 @@ def send_otp(request):
         print("OTP:", otp)   # temporary testing
 
         return JsonResponse({
-            "status":"OTP sent"
-        })
+    "status": True
+    })
     
 @csrf_exempt
 def verify_otp(request):
