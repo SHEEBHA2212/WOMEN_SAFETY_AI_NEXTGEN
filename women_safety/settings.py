@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'feedback',
     'voice',
     'users',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

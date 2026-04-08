@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback - Safe Space</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2e2e2e;
+    --subtext: #666;
+    --primary: #5f7c8a;
+    --neutral: #e9ecef;
+}
+
+body.dark {
+    --bg: #121212;
+    --card: #1e1e1e;
+    --text: #f0f0f0;
+    --subtext: #cccccc;
+    --primary: #7fa6b3;
+    --neutral: #2a2a2a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background:
+        linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+        url('./images/bg6.png') no-repeat center center/cover;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: var(--card);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+header button {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text);
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.card {
+    background: var(--card);
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    text-align: left;
+}
+
+.card h3 {
+    color:var(--text);
+    margin-bottom:5px;
+    font-size:20px;
+}
+
+.card > .subtitle {
+    color:var(--subtext);
+    font-size:14px;
+    margin-bottom:22px;
+}
+
+.progress-wrap { margin-bottom: 24px; }
+
+.progress-label {
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--subtext);
+    margin-bottom:6px;
+}
+
+.progress-bar-bg {
+    width:100%;
+    height:7px;
+    background:#ddd;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.progress-bar-fill {
+    height:100%;
+    background:var(--primary);
+    border-radius:10px;
+    transition:width 0.4s ease;
+}
+
+.step-dots {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:22px;
+}
+
+.dot {
+    width:9px; height:9px;
+    border-radius:50%;
+    background:#ccc;
+    transition:0.3s;
+}
+.dot.active { background:var(--primary); transform:scale(1.3); }
+.dot.done   { background:#28a745; }
+
+.step { display:none; animation:fadeIn 0.3s ease; }
+.step.active { display:block; }
+
+@keyframes fadeIn {
+    from { opacity:0; transform:translateX(15px); }
+    to   { opacity:1; transform:translateX(0); }
+}
+
+.step-heading {
+    font-size:13px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--primary);
+    margin-bottom:16px;
+}
+
+.rating-table {
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:18px;
+}
+
+.rating-table th {
+    font-size:12px;
+    color:var(--subtext);
+    font-weight:500;
+    padding:8px 6px;
+    text-align:center;
+}
+
+.rating-table th:first-child { text-align:left; }
+
+.rating-table td {
+    padding:10px 6px;
+    text-align:center;
+    font-size:14px;
+    color:var(--text-color);
+    border-top:1px solid rgba(0,0,0,0.06);
+}
+
+.rating-table tr:hover td { background:rgba(95,124,138,0.05); }
+.rating-table td:first-child { text-align:left; font-size:14px; }
+
+.rating-table input[type="radio"] {
+    width:18px; height:18px;
+    accent-color:var(--primary);
+    cursor:pointer;
+}
+
+textarea, input[type="text"], select {
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    background:var(--card-color);
+    color:var(--text-color);
+    margin-bottom:14px;
+}
+
+textarea { resize:vertical; min-height:85px; }
+
+.emoji-row {
+    display:flex;
+    justify-content:space-around;
+    margin:10px 0 20px;
+}
+
+.emoji-btn {
+    font-size:28px;
+    cursor:pointer;
+    padding:8px 12px;
+    border-radius:10px;
+    border:2px solid transparent;
+    transition:0.2s;
+    background:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+}
+
+.emoji-btn span {
+    font-size:11px;
+    color:var(--subtext-color);
+}
+
+.emoji-btn.selected {
+    border-color:var(--primary);
+    background:rgba(95,124,138,0.1);
+    transform:scale(1.15);
+}
+
+.recommend-row {
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+}
+
+.rec-btn {
+    padding:8px 16px;
+    border-radius:20px;
+    border:2px solid #ccc;
+    background:none;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--text-color);
+    transition:0.2s;
+}
+
+.rec-btn.selected {
+    border-color:var(--primary);
+    background:var(--primary);
+    color:white;
+}
+
+.btn-row {
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+button.primary-btn {
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:var(--primary);
+    color:white;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:500;
+    transition:0.2s;
+}
+
+button.primary-btn:hover { opacity:0.9; }
+button.primary-btn:disabled { opacity:0.6; cursor:not-allowed; }
+
+button.secondary-btn {
+    flex:1;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    background:transparent;
+    color:var(--text-color);
+    cursor:pointer;
+    font-size:14px;
+    transition:0.2s;
+}
+
+.thankyou {
+    text-align:center;
+    padding:30px 10px;
+    display:none;
+}
+
+.thankyou .big-icon { font-size:60px; margin-bottom:16px; }
+
+.thankyou h3 {
+    font-size:22px;
+    color:var(--text-color);
+    margin-bottom:8px;
+}
+
+.thankyou p {
+    color:var(--subtext-color);
+    font-size:14px;
+    margin-bottom:20px;
+}
+
+label.field-label {
+    display:block;
+    font-size:13px;
+    font-weight:500;
+    color:var(--text-color);
+    margin-bottom:6px;
+}
+
+.form-message {
+    margin-top:8px;
+    font-size:13px;
+    min-height:18px;
+}
+
+.form-message.error { color: #e53935; }
+.form-message.success { color: #28a745; }
+
+/* Spinner inside button */
+.spinner {
+    display:inline-block;
+    width:14px; height:14px;
+    border:2px solid rgba(255,255,255,0.4);
+    border-top-color:white;
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    vertical-align:middle;
+    margin-right:6px;
+}
+
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="goHome()">Home</button>
+    <h2>Safe Space — Feedback</h2>
+    <button onclick="toggleDarkMode()">🌙</button>
+</header>
+
+<div class="container">
+<div class="card">
+
+    <h3>Share Your Experience</h3>
+    <p class="subtitle">Your feedback helps us improve Safe Space for everyone.</p>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-wrap">
+        <div class="progress-label">
+            <span id="stepLabel">Step 1 of 3</span>
+            <span id="stepPercent">33%</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill" style="width:33%"></div>
+        </div>
+    </div>
+
+    <!-- STEP DOTS -->
+    <div class="step-dots">
+        <div class="dot active" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
+        <div class="dot" id="dot3"></div>
+    </div>
+
+    <!-- ───── STEP 1: RATE FEATURES ───── -->
+    <div class="step active" id="step1">
+        <div class="step-heading">Step 1 — Rate Our Features</div>
+        <p style="font-size:13px;color:var(--subtext-color);margin-bottom:14px;">Please rate your satisfaction with the following:</p>
+
+        <table class="rating-table">
+            <thead>
+                <tr>
+                    <th style="width:38%"></th>
+                    <th>😍<br>Excellent</th>
+                    <th>😊<br>Good</th>
+                    <th>😐<br>Okay</th>
+                    <th>😕<br>Poor</th>
+                    <th>😞<br>Very Poor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ease of using the app</td>
+                    <td><input type="radio" name="r1" value="5"></td>
+                    <td><input type="radio" name="r1" value="4"></td>
+                    <td><input type="radio" name="r1" value="3"></td>
+                    <td><input type="radio" name="r1" value="2"></td>
+                    <td><input type="radio" name="r1" value="1"></td>
+                </tr>
+                <tr>
+                    <td>Emergency response feature</td>
+                    <td><input type="radio" name="r2" value="5"></td>
+                    <td><input type="radio" name="r2" value="4"></td>
+                    <td><input type="radio" name="r2" value="3"></td>
+                    <td><input type="radio" name="r2" value="2"></td>
+                    <td><input type="radio" name="r2" value="1"></td>
+                </tr>
+                <tr>
+                    <td>Legal assistance section</td>
+                    <td><input type="radio" name="r3" value="5"></td>
+                    <td><input type="radio" name="r3" value="4"></td>
+                    <td><input type="radio" name="r3" value="3"></td>
+                    <td><input type="radio" name="r3" value="2"></td>
+                    <td><input type="radio" name="r3" value="1"></td>
+                </tr>
+                <tr>
+                    <td>Complaint filing process</td>
+                    <td><input type="radio" name="r4" value="5"></td>
+                    <td><input type="radio" name="r4" value="4"></td>
+                    <td><input type="radio" name="r4" value="3"></td>
+                    <td><input type="radio" name="r4" value="2"></td>
+                    <td><input type="radio" name="r4" value="1"></td>
+                </tr>
+                <tr>
+                    <td>Nearby help directory</td>
+                    <td><input type="radio" name="r5" value="5"></td>
+                    <td><input type="radio" name="r5" value="4"></td>
+                    <td><input type="radio" name="r5" value="3"></td>
+                    <td><input type="radio" name="r5" value="2"></td>
+                    <td><input type="radio" name="r5" value="1"></td>
+                </tr>
+                <tr>
+                    <td>Overall app design</td>
+                    <td><input type="radio" name="r6" value="5"></td>
+                    <td><input type="radio" name="r6" value="4"></td>
+                    <td><input type="radio" name="r6" value="3"></td>
+                    <td><input type="radio" name="r6" value="2"></td>
+                    <td><input type="radio" name="r6" value="1"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p id="formMessage" class="form-message"></p>
+        <div class="btn-row">
+            <button class="primary-btn" onclick="nextStep(1)">Next →</button>
+        </div>
+    </div>
+
+    <!-- ───── STEP 2: OVERALL EXPERIENCE ───── -->
+    <div class="step" id="step2">
+        <div class="step-heading">Step 2 — Overall Experience</div>
+
+        <label class="field-label">How would you rate your overall experience?</label>
+        <div class="emoji-row">
+            <button class="emoji-btn" onclick="selectEmoji(this, 'amazing')" data-val="amazing">😍<span>Amazing</span></button>
+            <button class="emoji-btn" onclick="selectEmoji(this, 'good')"    data-val="good">😊<span>Good</span></button>
+            <button class="emoji-btn" onclick="selectEmoji(this, 'okay')"    data-val="okay">😐<span>Okay</span></button>
+            <button class="emoji-btn" onclick="selectEmoji(this, 'poor')"    data-val="poor">😕<span>Poor</span></button>
+            <button class="emoji-btn" onclick="selectEmoji(this, 'bad')"     data-val="bad">😞<span>Bad</span></button>
+        </div>
+
+        <label class="field-label">Would you recommend Safe Space to others?</label>
+        <div class="recommend-row">
+            <button class="rec-btn" onclick="selectRec(this,'Definitely')">Definitely ✅</button>
+            <button class="rec-btn" onclick="selectRec(this,'Maybe')">Maybe 🤔</button>
+            <button class="rec-btn" onclick="selectRec(this,'Not really')">Not really ❌</button>
+        </div>
+
+        <label class="field-label">Which feature did you find most useful?</label>
+        <select id="bestFeature">
+            <option value="">Select a feature</option>
+            <option value="emergency">🚨 Emergency Alert</option>
+            <option value="legal">⚖️ Legal Assistance</option>
+            <option value="complaint">📝 File Complaint</option>
+            <option value="directory">📍 Nearby Help</option>
+            <option value="chat">💬 Talk to Support</option>
+        </select>
+
+        <p id="formMessage2" class="form-message"></p>
+        <div class="btn-row">
+            <button class="secondary-btn" onclick="prevStep(2)">← Back</button>
+            <button class="primary-btn"   onclick="nextStep(2)">Next →</button>
+        </div>
+    </div>
+
+    <!-- ───── STEP 3: SUGGESTIONS ───── -->
+    <div class="step" id="step3">
+        <div class="step-heading">Step 3 — Your Suggestions</div>
+
+        <label class="field-label">What can we improve? (Optional)</label>
+        <textarea id="improvement" placeholder="Tell us what you'd like to see improved..."></textarea>
+
+        <label class="field-label">Any other comments or suggestions? (Optional)</label>
+        <textarea id="comments" placeholder="Your thoughts matter to us..."></textarea>
+
+        <label class="field-label">Your Name (Optional)</label>
+        <input type="text" id="feedbackName" placeholder="Enter your name">
+
+        <p id="formMessage3" class="form-message"></p>
+        <div class="btn-row">
+            <button class="secondary-btn" onclick="prevStep(3)">← Back</button>
+            <button class="primary-btn" id="submitBtn" onclick="submitFeedback()">Submit Feedback ✅</button>
+        </div>
+    </div>
+
+    <!-- ───── THANK YOU ───── -->
+    <div class="thankyou" id="thankyou">
+        <div class="big-icon">🎉</div>
+        <h3>Thank You!</h3>
+        <p>Your feedback has been submitted successfully.<br>It helps us make Safe Space better for everyone.</p>
+        <button class="primary-btn" style="max-width:200px;margin:0 auto;" onclick="goHome()">Back to Home</button>
+    </div>
+
+</div>
+</div>
+
+<script>
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode",
+        document.body.classList.contains("dark") ? "enabled" : "disabled");
+}
+
+function goHome() {
+    window.location.href = "index.htm";
+}
+
+let selectedEmoji = "";
+let selectedRec   = "";
+
+const steps    = [null, "step1","step2","step3"];
+const percents = [null, "33",   "66",   "100"];
+
+function showStep(n) {
+    steps.forEach((id, i) => {
+        if (!id) return;
+        document.getElementById(id).classList.remove("active");
+        const dot = document.getElementById("dot" + i);
+        if (i < n)        dot.className = "dot done";
+        else if (i === n) dot.className = "dot active";
+        else              dot.className = "dot";
+    });
+    document.getElementById(steps[n]).classList.add("active");
+    document.getElementById("progressFill").style.width = percents[n] + "%";
+    document.getElementById("stepLabel").textContent   = "Step " + n + " of 3";
+    document.getElementById("stepPercent").textContent = percents[n] + "%";
+}
+
+function nextStep(current) {
+    if (current === 1) {
+        const names = ["r1","r2","r3","r4","r5","r6"];
+        for (let n of names) {
+            if (!document.querySelector(`input[name="${n}"]:checked`)) {
+                setMessage("formMessage", "Please rate all features before proceeding.", "error");
+                return;
+            }
+        }
+        setMessage("formMessage", "", "");
+    }
+
+    if (current === 2) {
+        if (!selectedEmoji || !selectedRec || !document.getElementById("bestFeature").value) {
+            setMessage("formMessage2", "Please complete all selections.", "error");
+            return;
+        }
+        setMessage("formMessage2", "", "");
+    }
+
+    showStep(current + 1);
+}
+
+function prevStep(current) {
+    showStep(current - 1);
+}
+
+function selectEmoji(el, val) {
+    document.querySelectorAll(".emoji-btn").forEach(b => b.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedEmoji = val;
+}
+
+function selectRec(el, val) {
+    document.querySelectorAll(".rec-btn").forEach(b => b.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedRec = val;
+}
+
+function setMessage(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "form-message" + (type ? " " + type : "");
+}
+
+async function submitFeedback() {
+    const ratings = {};
+    ["r1","r2","r3","r4","r5","r6"].forEach(n => {
+        const el = document.querySelector(`input[name="${n}"]:checked`);
+        ratings[n] = el ? parseInt(el.value) : null;
+    });
+
+    const feedbackData = {
+        ratings,
+        overall:     selectedEmoji,
+        recommend:   selectedRec,
+        bestFeature: document.getElementById("bestFeature").value,
+        improvement: document.getElementById("improvement").value,
+        comments:    document.getElementById("comments").value,
+        name:        document.getElementById("feedbackName").value
+    };
+
+    // Show loading state
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
+    setMessage("formMessage3", "", "");
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/feedback/submit/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(feedbackData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            // Server returned 4xx / 5xx
+            throw new Error(data.message || "Server error. Please try again.");
+        }
+
+        console.log("Saved:", data);
+
+        // Success — show thank you screen
+        document.querySelectorAll(".step").forEach(s => s.style.display = "none");
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepLabel").textContent = "Completed!";
+        document.getElementById("stepPercent").textContent = "100%";
+        document.querySelectorAll(".dot").forEach(d => d.className = "dot done");
+        document.getElementById("thankyou").style.display = "block";
+
+    } catch (error) {
+        console.error("Submission error:", error);
+        setMessage("formMessage3", "⚠️ " + (error.message || "Could not connect to server. Please try again."), "error");
+
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Submit Feedback ✅";
+    }
+}
+</script>
+
+</body>
+</html>
