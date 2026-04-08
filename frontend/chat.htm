@@ -2,550 +2,269 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Safe Space Support | Command & AI Assistant</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safe Emergency System</title>
+
 <style>
-:root {
-    --bg-color: #eef4f1;
-    --card-color: #fdfcf9;
-    --text-color: #1f2a2e;
-    --subtext-color: #5b6f6b;
-    --user-msg: #5f7c8a;
-    --user-text: #ffffff;
-    --bot-msg: #e6ece9;
-    --bot-text: #1e2a2c;
-    --suggest-bg: #ffffffcc;
-    --suggest-hover: #ffffff;
-    --border-light: rgba(0,0,0,0.05);
-    --shadow-sm: 0 4px 12px rgba(0,0,0,0.03);
+body { font-family: Arial; margin:0; background:#eef4f1; }
+
+.chat { height:60vh; overflow:auto; padding:10px; }
+
+.msg {
+    padding:10px; margin:6px;
+    border-radius:10px; max-width:80%;
+}
+.user { background:#5f7c8a; color:white; margin-left:auto; }
+.bot { background:#e6ece9; }
+.panic { background:#ff3b3b; color:white; font-weight:bold; }
+
+.controls {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    padding:10px;
 }
 
-body.dark {
-    --bg-color: #18191c;
-    --card-color: #2a2b2e;
-    --text-color: #ececec;
-    --subtext-color: #b0b3b8;
-    --user-msg: #7fa6b3;
-    --user-text: #f0f0f0;
-    --bot-msg: #3a3b3f;
-    --bot-text: #e4e6eb;
-    --suggest-bg: #3e3f44cc;
-    --suggest-hover: #4a4b50;
-    --border-light: #3a3b3f;
-    --shadow-sm: 0 4px 12px rgba(0,0,0,0.2);
+button {
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#5f7c8a;
+    color:white;
+    cursor:pointer;
 }
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-color);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    transition: background 0.2s ease, color 0.2s;
-}
-
-/* Header */
-header {
-    background: var(--card-color);
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-light);
-    backdrop-filter: blur(2px);
-    box-shadow: var(--shadow-sm);
-}
-
-header h2 {
-    font-weight: 600;
-    font-size: 1.2rem;
-    letter-spacing: -0.2px;
-    color: var(--text-color);
-}
-
-header button {
-    background: rgba(128,128,128,0.1);
-    border: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: 6px 12px;
-    border-radius: 40px;
-    transition: 0.2s;
-    color: var(--text-color);
-    font-weight: 500;
-}
-
-header button:hover {
-    background: rgba(128,128,128,0.25);
-    transform: scale(0.96);
-}
-
-/* Chat container */
-.chat-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    scroll-behavior: smooth;
-}
-
-.message {
-    max-width: 80%;
-    padding: 12px 18px;
-    border-radius: 22px;
-    font-size: 0.9rem;
-    line-height: 1.45;
-    animation: fadeInUp 0.25s ease;
-    font-weight: 450;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.user {
-    align-self: flex-end;
-    background: var(--user-msg);
-    color: var(--user-text);
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.bot {
-    align-self: flex-start;
-    background: var(--bot-msg);
-    color: var(--bot-text);
-    border-bottom-left-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-}
-
-/* suggestion row */
-.suggestion-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px 18px 8px 18px;
-    background: var(--bg-color);
-    border-top: 1px solid var(--border-light);
-    justify-content: center;
-}
-
-.suggest-btn {
-    padding: 8px 16px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 40px;
-    border: none;
-    cursor: pointer;
-    background: var(--suggest-bg);
-    backdrop-filter: blur(8px);
-    color: var(--text-color);
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    font-family: 'Inter', monospace;
-}
-
-.suggest-btn:hover {
-    background: var(--suggest-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-}
-
-/* Input area */
-.input-area {
-    display: flex;
-    padding: 12px 18px;
-    background: var(--card-color);
-    gap: 12px;
-    align-items: center;
-    border-top: 1px solid var(--border-light);
-}
+button:hover { background:#4a6775; }
 
 input {
-    flex: 1;
-    padding: 12px 18px;
-    border-radius: 48px;
-    border: 1px solid var(--border-light);
-    background: var(--bg-color);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    color: var(--text-color);
-    transition: 0.2s;
-}
-
-input:focus {
-    border-color: var(--user-msg);
-    box-shadow: 0 0 0 2px rgba(95,124,138,0.2);
-}
-
-.send-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: none;
-    background: var(--user-msg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.2s;
-    flex-shrink: 0;
-}
-
-.send-btn svg {
-    width: 20px;
-    height: 20px;
-    fill: white;
-}
-
-.send-btn:hover {
-    transform: scale(1.02);
-    opacity: 0.9;
-    background: #4f6b78;
-}
-
-.typing {
-    font-size: 0.75rem;
-    color: var(--subtext-color);
-    background: var(--bot-msg);
-    padding: 6px 14px;
-    border-radius: 28px;
-    width: fit-content;
-    font-style: italic;
-    margin-top: 4px;
-    animation: pulseOpacity 1.2s infinite;
-}
-
-@keyframes pulseOpacity {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-}
-
-/* error/small badges */
-.command-badge {
-    font-weight: 600;
-    background: rgba(0,0,0,0.05);
-    display: inline-block;
-    border-radius: 16px;
-    padding: 2px 8px;
-}
-
-/* responsiveness */
-@media (max-width: 550px) {
-    .message {
-        max-width: 90%;
-    }
-    .suggest-btn {
-        padding: 6px 12px;
-        font-size: 0.7rem;
-    }
-}
-
-/* scroll */
-.chat-container::-webkit-scrollbar {
-    width: 5px;
-}
-.chat-container::-webkit-scrollbar-track {
-    background: transparent;
-}
-.chat-container::-webkit-scrollbar-thumb {
-    background: var(--subtext-color);
-    border-radius: 10px;
+    width:100%;
+    padding:10px;
+    border:none;
+    border-top:1px solid #ccc;
 }
 </style>
 </head>
+
 <body>
 
-<header>
-    <button onclick="goHome()" aria-label="Home">🏠 Home</button>
-    <h2>🛡️ Safe Space Support</h2>
-    <button onclick="toggleDarkMode()" aria-label="Dark mode toggle">🌙</button>
-</header>
+<div class="chat" id="chat"></div>
 
-<div class="chat-container" id="chat"></div>
+<div class="controls">
 
-<div class="suggestion-container">
-    <button class="suggest-btn" onclick="quickCommand('@help')">@help</button>
-    <button class="suggest-btn" onclick="quickCommand('@emergency')">@emergency</button>
-    <button class="suggest-btn" onclick="quickCommand('@contact')">@contact</button>
-    <button class="suggest-btn" onclick="quickCommand('@safety')">@safety</button>
-    <button class="suggest-btn" onclick="quickCommand('@nearestpolice')">@nearestpolice</button>
-    <button class="suggest-btn" onclick="quickCommand('@complaint')">@complaint</button>
-    <button class="suggest-btn" onclick="quickCommand('@status')">@status</button>
-    <button class="suggest-btn" onclick="quickCommand('@feedback')">@feedback</button>
-    <button class="suggest-btn" onclick="quickCommand('@report')">@report</button>
+<button onclick="cmd('panic')">🚨 Panic</button>
+<button onclick="cmd('emergency')">🚑 Emergency</button>
+<button onclick="cmd('police')">🚓 Police</button>
+
+<button onclick="cmd('ambulance')">🚑 Ambulance</button>
+<button onclick="cmd('fire')">🔥 Fire</button>
+<button onclick="cmd('women')">👩 Women</button>
+
+<button onclick="cmd('child')">🧒 Child</button>
+<button onclick="cmd('track')">📍 Track</button>
+<button onclick="cmd('share')">📤 Share Loc</button>
+
+<button onclick="cmd('maps')">🗺 Open Maps</button>
+<button onclick="cmd('hospital')">🏥 Hospital</button>
+<button onclick="cmd('safe')">🛡 Safety</button>
+
+<button onclick="cmd('alert')">📢 Alert</button>
+<button onclick="cmd('sms')">📩 SOS SMS</button>
+<button onclick="cmd('status')">✅ Status</button>
+
 </div>
 
-<div class="input-area">
-    <input type="text" id="userInput" placeholder="Ask anything or use @commands ..." autocomplete="off" />
-    <button class="send-btn" onclick="sendMessage()">
-        <svg viewBox="0 0 24 24">
-            <path d="M2 21L23 12 2 3v7l15 2-15 2z"/>
-        </svg>
-    </button>
-</div>
+<input id="input" placeholder="Ask AI (optional)...">
 
 <script>
-    // DOM Elements
-    const chatContainer = document.getElementById("chat");
-    const userInputField = document.getElementById("userInput");
+const chat = document.getElementById("chat");
 
-    // -------- Enhanced command parser (handles all commands with better responses) ---------
-    function processLocalCommand(cmdText) {
-        // normalize command: lowercase without extra spaces
-        const normalized = cmdText.trim().toLowerCase();
-        
-        // Exact commands + rich replies
-        if (normalized === "@help") {
-            return `📋 <strong>Available commands</strong><br><br>🔹 <code>@emergency</code> - Immediate helplines<br>🔹 <code>@contact</code> - Support & email<br>🔹 <code>@safety</code> - Safety tips<br>🔹 <code>@nearestpolice</code> - Police station info<br>🔹 <code>@complaint</code> - File a complaint guide<br>🔹 <code>@status</code> - System status<br>🔹 <code>@feedback</code> - Share feedback<br>🔹 <code>@report</code> - Report incident<br><br>💬 You can also just type your concern & I'll assist (AI backend) ✨`;
+// ---------- MESSAGE ----------
+function add(text, type="bot") {
+    const d = document.createElement("div");
+    d.className = "msg " + type;
+    d.innerHTML = text;
+    chat.appendChild(d);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// ---------- LOCATION CORE ----------
+async function getLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject("Geolocation not supported");
         }
-        else if (normalized === "@emergency") {
-            return `🚨 <strong>IMMEDIATE HELP</strong><br>🇮🇳 <strong>112</strong> - Emergency (Police/Fire/Ambulance)<br>👩 <strong>181</strong> - Women Helpline<br>🧒 <strong>1098</strong> - Child Helpline<br>💙 <strong>Domestic Abuse</strong> : 1800-212-1800<br><br>⚠️ If you're in danger, please call 112 right now.`;
-        }
-        else if (normalized === "@contact") {
-            return `📞 <strong>Safe Space Support Center</strong><br>📱 Helpline: <strong>1800-123-4567</strong><br>✉️ Email: <strong>support@safespace.org</strong><br>🕒 Hours: 24/7 confidential support<br>🌐 Web: www.safespace.org/chat`;
-        }
-        else if (normalized === "@safety") {
-            return `🛡️ <strong>Personal Safety Tips</strong><br>✔️ Share live location with trusted contact<br>✔️ Avoid isolated shortcuts, stay in well-lit areas<br>✔️ Keep emergency numbers on speed dial<br>✔️ Use safety apps and virtual escort<br>✔️ Trust your instincts — if it feels unsafe, leave immediately.`;
-        }
-        else if (normalized === "@nearestpolice") {
-            return `🚓 <strong>Nearest Police Station</strong><br>📍 To find the closest station, enable location services.<br>🔍 Alternatively, you can search "Police Station near me" on Google Maps.<br>📞 For immediate police assistance, dial <strong>112</strong> or <strong>100</strong>.`;
-        }
-        else if (normalized === "@complaint") {
-            return `📄 <strong>How to file a complaint?</strong><br>1️⃣ Visit the nearest police station with ID proof.<br>2️⃣ File Zero FIR if crime happened in different jurisdiction.<br>3️⃣ Online portal: <strong>https://ncrb.gov.in</strong><br>4️⃣ Women can file complaint online via <strong>NCW portal</strong>.<br>📞 Need assistance? Reach our support team.`;
-        }
-        else if (normalized === "@status") {
-            return `✅ <strong>System Status</strong><br>🟢 Chat service: <strong>Active</strong><br>🟢 Emergency routing: Available<br>🟢 Backend AI: Connected (if API available)<br>🟢 Local commands: Fully functional.<br>⭐ You're safe & connected.`;
-        }
-        else if (normalized === "@feedback") {
-            return `📝 <strong>We value your feedback!</strong><br>Please share your suggestions or report issues via:<br>✉️ feedback@safespace.org<br>📞 1800-123-456 (ext. 4)<br>⭐ Your voice makes this space better.`;
-        }
-        else if (normalized === "@report") {
-            return `📢 <strong>Report an Incident (Anonymous Option)</strong><br>🔒 You can submit confidential report through our portal:<br>🌐 safespace.org/report<br>📞 Helpline advocates ready to assist 24/7.<br><br>Remember: You are not alone.`;
-        }
-        else {
-            // if unknown @ command, suggest help
-            return `⚠️ Unknown command: "${cmdText}".<br>Type <strong>@help</strong> to see all available commands.`;
-        }
+
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const acc = pos.coords.accuracy;
+
+                resolve({ lat, lng, acc });
+            },
+            err => {
+                reject(err.message);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
+}
+
+// ---------- COMMAND ENGINE ----------
+async function cmd(c) {
+
+    const hour = new Date().getHours();
+
+    if (c === "panic") {
+        add("🚨 PANIC MODE ACTIVATED<br>📞 CALL 112 NOW<br>📍 Tracking + Alert recommended", "panic");
+        return;
     }
 
-    // Helper to add message to UI
-    function addMessage(text, type) {
-        const msgDiv = document.createElement("div");
-        msgDiv.classList.add("message", type);
-        // allow HTML for bot messages (rich formatting, safe)
-        if (type === "bot") {
-            msgDiv.innerHTML = text;
-        } else {
-            msgDiv.textContent = text; // plain text for user messages
-        }
-        chatContainer.appendChild(msgDiv);
-        // auto-scroll
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        return msgDiv;
+    if (c === "emergency") {
+        add(`🚑 Emergency<br>📞 112<br>${hour>21||hour<6?"🌙 Night risk":"☀️ Stay alert"}`, "panic");
+        return;
     }
 
-    // Typing indicators
-    let typingElement = null;
-    function showTyping() {
-        removeTyping();
-        typingElement = document.createElement("div");
-        typingElement.classList.add("typing");
-        typingElement.id = "dynamicTyping";
-        typingElement.innerText = "✨ Safety Assistant is thinking...";
-        chatContainer.appendChild(typingElement);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+    if (c === "police") {
+        window.location.href = "tel:100";
+        return;
     }
 
-    function removeTyping() {
-        if (typingElement && typingElement.remove) {
-            typingElement.remove();
-            typingElement = null;
-        }
-        const existing = document.getElementById("dynamicTyping");
-        if (existing) existing.remove();
+    if (c === "ambulance") {
+        window.location.href = "tel:108";
+        return;
     }
 
-    // ----------- API caller (improved with timeout & robust error) -------------
-    async function callSupportAPI(userMessage) {
-        const apiUrl = "http://127.0.0.1:8000/api/support/chatbot/";
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
-        
+    if (c === "fire") {
+        window.location.href = "tel:101";
+        return;
+    }
+
+    if (c === "women") {
+        window.location.href = "tel:181";
+        return;
+    }
+
+    if (c === "child") {
+        window.location.href = "tel:1098";
+        return;
+    }
+
+    if (c === "track") {
+        add("📡 Getting accurate location...");
         try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({ message: userMessage }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                // if server error but response exists
-                let errorText = `API responded with status ${response.status}`;
-                try {
-                    const errData = await response.json();
-                    errorText = errData.detail || errData.message || errorText;
-                } catch(e) {}
-                throw new Error(errorText);
-            }
-            
-            const data = await response.json();
-            // backend should return { reply: "..." } but flexible
-            if (data && typeof data.reply === "string") {
-                return data.reply;
-            } else if (data && data.response) {
-                return data.response;
-            } else if (typeof data === "string") {
-                return data;
-            } else {
-                return "I received your message, but the response format is unexpected. Still, I'm here for you 💙";
-            }
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (error.name === "AbortError") {
-                return "⏳ The support service is taking too long. Please check your connection or try again later. Meanwhile, you can use @commands for immediate help!";
-            }
-            console.warn("API fetch error:", error);
-            // graceful fallback: provide safe offline reply
-            return "🔌 I'm having trouble connecting to the live support assistant. But don't worry — you can still use commands like @help, @emergency, @safety, and I will assist you instantly. Your safety is my priority. 🤍";
+            const loc = await getLocation();
+
+            add(`📍 Lat: ${loc.lat}<br>Lng: ${loc.lng}<br>Accuracy: ${loc.acc}m`);
+
+        } catch(e) {
+            add("❌ Location failed: " + e);
         }
+        return;
     }
 
-    // main send message logic (commands + AI)
-    let isProcessing = false;
-    async function sendMessage() {
-        if (isProcessing) return;
-        
-        const inputElem = document.getElementById("userInput");
-        let rawMessage = inputElem.value.trim();
-        if (!rawMessage) return;
-        
-        // store original for user display
-        const userDisplayText = rawMessage;
-        addMessage(userDisplayText, "user");
-        inputElem.value = "";
-        isProcessing = true;
-        
-        // check if it's a command (starts with @)
-        const isCommand = rawMessage.startsWith("@");
-        
-        if (isCommand) {
-            // process local command instantly (no typing, immediate reply)
-            const replyHtml = processLocalCommand(rawMessage);
-            addMessage(replyHtml, "bot");
-            isProcessing = false;
-            return;
-        }
-        
-        // ---------- NORMAL CHAT => API call with typing indicator ----------
-        showTyping();
+    if (c === "share") {
         try {
-            const apiReply = await callSupportAPI(rawMessage);
-            removeTyping();
-            // API can return plain text or small HTML, we'll render as bot message with HTML support
-            addMessage(apiReply, "bot");
-        } catch (err) {
-            removeTyping();
-            // ultimate fallback (should never happen because callSupportAPI handles gracefully)
-            addMessage("🛡️ Support system is currently offline. Please use @emergency or @contact for immediate assistance.", "bot");
-        } finally {
-            isProcessing = false;
+            const loc = await getLocation();
+            const url = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+
+            navigator.clipboard.writeText(url);
+            add("📤 Location copied! Send to contacts:<br>" + url);
+
+        } catch(e) {
+            add("❌ Unable to share location");
         }
+        return;
     }
-    
-    // Quick command helper
-    function quickCommand(command) {
-        if (isProcessing) return;
-        const inputField = document.getElementById("userInput");
-        inputField.value = command;
-        sendMessage();
+
+    if (c === "maps") {
+        window.open("https://maps.google.com", "_blank");
+        return;
     }
-    
-    // Dark mode with localStorage
-    function toggleDarkMode() {
-        document.body.classList.toggle("dark");
-        const isDark = document.body.classList.contains("dark");
-        localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
-        // update header button emoji feedback
-        const darkBtn = document.querySelector("header button:last-child");
-        if (darkBtn) darkBtn.textContent = isDark ? "☀️" : "🌙";
+
+    if (c === "hospital") {
+        window.open("https://www.google.com/maps/search/hospital+near+me");
+        return;
     }
-    
-    function goHome() {
-        // fallback if index.htm doesn't exist, just reload or show message
-        window.location.href = "index.htm";
+
+    if (c === "safe") {
+        add("🛡 Stay visible • Avoid isolation • Share location • Trust instincts");
+        return;
     }
-    
-    // event listeners
-    function initEventListeners() {
-        const inputBox = document.getElementById("userInput");
-        if (inputBox) {
-            inputBox.addEventListener("keypress", function(e) {
-                if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!isProcessing) sendMessage();
-                }
-            });
-        }
+
+    if (c === "alert") {
+        add("📢 Alert triggered (connect to backend for real use)");
+        return;
     }
-    
-    // Welcome message + load theme & restore history (optional, but we set greeting)
-    window.onload = function() {
-        // load dark mode preference
-        const savedMode = localStorage.getItem("darkMode");
-        if (savedMode === "enabled") {
-            document.body.classList.add("dark");
-            const darkBtn = document.querySelector("header button:last-child");
-            if (darkBtn) darkBtn.textContent = "☀️";
-        } else {
-            document.body.classList.remove("dark");
-            const darkBtn = document.querySelector("header button:last-child");
-            if (darkBtn) darkBtn.textContent = "🌙";
-        }
-        
-        initEventListeners();
-        
-        // initial bot greeting
-        const welcomeMsg = `👋 Hello! I'm your <strong>Safe Space Support Assistant</strong>.<br><br>💡 You can type <strong>@help</strong> to see all command shortcuts (emergency, police, safety tips).<br>📢 For any other question or emotional support, just type your message — I'll respond via our secure AI assistant.`;
-        addMessage(welcomeMsg, "bot");
-        
-        // optionally, if you'd like a small tip:
-        setTimeout(() => {
-            const tipMsg = `🔔 <em>Tip:</em> Try "<strong>@emergency</strong>" for instant helplines or "<strong>@safety</strong>" for quick safety advice.`;
-            addMessage(tipMsg, "bot");
-        }, 800);
-    };
-    
-    // expose globals for inline buttons
-    window.quickCommand = quickCommand;
-    window.sendMessage = sendMessage;
-    window.toggleDarkMode = toggleDarkMode;
-    window.goHome = goHome;
+
+    if (c === "sms") {
+        window.location.href = "sms:?body=HELP! I need assistance immediately.";
+        return;
+    }
+
+    if (c === "status") {
+        add("✅ System Ready<br>🟢 GPS Enabled<br>🟢 Commands Active");
+        return;
+    }
+}
+
+// ---------- AI ----------
+let API_KEY = null;
+
+async function AI(msg) {
+
+    if (!API_KEY) {
+        API_KEY = prompt("Enter API Key:");
+    }
+
+    try {
+        const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method:"POST",
+            headers:{
+                "Authorization":"Bearer "+API_KEY,
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                model:"mistralai/mistral-7b-instruct:free",
+                messages:[
+                    {role:"system",content:"You are emergency assistant."},
+                    {role:"user",content:msg}
+                ]
+            })
+        });
+
+        const d = await r.json();
+        return d.choices?.[0]?.message?.content || "No reply";
+
+    } catch {
+        return "⚠️ AI unavailable";
+    }
+}
+
+// ---------- INPUT ----------
+document.getElementById("input").addEventListener("keypress", async e => {
+    if (e.key === "Enter") {
+
+        const val = e.target.value.trim();
+        if (!val) return;
+
+        add(val,"user");
+        e.target.value="";
+
+        add("⏳ Thinking...");
+        const reply = await AI(val);
+        chat.lastChild.remove();
+        add(reply);
+    }
+});
+
+// ---------- INIT ----------
+add("🛡 Safe Emergency System Ready<br>Tap buttons for instant help");
+
 </script>
+
 </body>
 </html>
