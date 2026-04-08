@@ -133,10 +133,6 @@ font-size:14px;
 color:green;
 }
 
-.success {
-    animation: fadeIn 0.4s ease;
-}
-
 /* FOOTER */
 footer{
 text-align:center;
@@ -146,7 +142,6 @@ backdrop-filter:blur(10px);
 font-size:12px;
 margin-top:20px;
 }
-
 </style>
 </head>
 
@@ -157,6 +152,7 @@ margin-top:20px;
 <div>Complaint Portal</div>
 <div class="toggle" onclick="toggleDarkMode()">🌙</div>
 </header>
+
 <div class="container">
 <div class="card">
 
@@ -204,7 +200,7 @@ Contact: support@safespace.com
 
 <script>
 let userLat = null;
-let userLon = null;    
+let userLon = null;
 
 /* DARK MODE */
 function toggleDarkMode(){
@@ -213,84 +209,84 @@ localStorage.setItem("darkMode",
 document.body.classList.contains("dark") ? "enabled" : "disabled");
 }
 
-window.onload=function(){
+/* SHOW COMPLAINT ID */
+function showComplaintId(id){
+let msg = document.getElementById("successMsg");
+msg.style.display = "block";
+msg.innerHTML = "✅ Complaint submitted! Your ID: <b>" + id + "</b>";
+}
+
+/* LOAD */
+window.onload = function(){
+
 if(localStorage.getItem("darkMode")==="enabled"){
 document.body.classList.add("dark");
 }
+
 getLocation();
+
+/* RESTORE LAST ID */
+let savedId = localStorage.getItem("lastComplaintId");
+if(savedId){
+showComplaintId(savedId);
+}
 }
 
+/* GET LOCATION */
 function getLocation(){
-
 if(navigator.geolocation){
-
 navigator.geolocation.getCurrentPosition(function(position){
-
 userLat = position.coords.latitude;
 userLon = position.coords.longitude;
-
-/* Convert GPS → Address */
 
 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLat}&lon=${userLon}`)
 .then(res=>res.json())
 .then(data=>{
-
-let address = data.display_name;
-
-document.getElementById("location").value = address;
-
+document.getElementById("location").value = data.display_name;
 });
-
-},
-function(){
-console.log("Location permission denied");
 });
-
+}
 }
 
-}
-
-/* SUBMIT COMPLAINT */
+/* SUBMIT */
 function submitComplaint(){
 
-    if(event) event.preventDefault();  // 🔥 ADD THIS
+let issue = document.getElementById("issueType").value;
+let desc = document.getElementById("description").value;
 
-    let issue = document.getElementById("issueType").value;
-    let desc = document.getElementById("description").value;
-
-    if(issue === "" || desc === ""){
-        alert("Fill required fields");
-        return;
-    }
-
-    fetch("http://127.0.0.1:8000/api/complaints/create/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            issue_type: issue,
-            location: document.getElementById("location").value,
-            description: desc,
-            contact: document.getElementById("contact").value,
-            latitude: userLat,
-            longitude: userLon
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        document.getElementById("successMsg").style.display = "block";
-        document.getElementById("successMsg").innerHTML =
-        "✅ Complaint submitted! Your ID: <b>" + data.complaint_id + "</b>";
-
-    })
-    .catch(()=>{
-        alert("Error submitting complaint");
-    });
+if(issue === "" || desc === ""){
+alert("Fill required fields");
+return;
 }
 
-/* TRACK COMPLAINT */
+fetch("http://127.0.0.1:8000/api/complaints/create/", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+issue_type: issue,
+location: document.getElementById("location").value,
+description: desc,
+contact: document.getElementById("contact").value,
+latitude: userLat,
+longitude: userLon
+})
+})
+.then(res => res.json())
+.then(data => {
+
+/* SAVE + SHOW */
+localStorage.setItem("lastComplaintId", data.complaint_id);
+showComplaintId(data.complaint_id);
+
+})
+.catch(()=>{
+alert("Error submitting complaint");
+});
+}
+
+/* TRACK */
 function trackComplaint(){
 
 let id = document.getElementById("trackId").value;
@@ -310,13 +306,11 @@ document.getElementById("trackResult").innerHTML =
 .catch(()=>{
 document.getElementById("trackResult").innerHTML = "Server error";
 });
-
 }
 
 function goHome(){
 window.location.href="index.htm";
 }
-
 </script>
 
 </body>
