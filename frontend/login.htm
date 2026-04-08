@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-
 *{ box-sizing:border-box; }
 
 :root{
@@ -31,19 +29,12 @@
 body{
 margin:0;
 font-family:'Poppins',sans-serif;
-
-background-image:url("./images/bg3.jpeg");
-background-size:cover;
-background-position:center;
-
+background:url("./images/bg3.jpeg") center/cover no-repeat;
 min-height:100vh;
-
 display:flex;
 justify-content:center;
 align-items:flex-start;
-
 padding-top:100px;
-
 color:var(--text);
 }
 
@@ -61,33 +52,18 @@ z-index:0;
 .container{
 position:relative;
 z-index:1;
-
 width:360px;
 padding:40px 35px;
-
 background:var(--card-bg);
 border-radius:20px;
-
 box-shadow:0 10px 40px rgba(0,0,0,0.3);
-
 backdrop-filter:blur(12px);
-
 text-align:center;
-
-animation:fadeIn 0.8s ease;
 }
 
-@keyframes fadeIn{
-from{ opacity:0; transform:translateY(30px); }
-to{ opacity:1; transform:translateY(0); }
-}
+h2{ margin-bottom:25px; }
 
-h2{
-margin-bottom:25px;
-font-weight:600;
-}
-
-/* FLOATING INPUT */
+/* INPUT */
 .input-group{
 position:relative;
 margin:18px 0;
@@ -96,73 +72,22 @@ margin:18px 0;
 .input-group input{
 width:100%;
 padding:16px 12px;
-
 border-radius:12px;
 border:none;
-
 background:var(--input-bg);
-
-font-size:15px;
 text-align:center;
-
 outline:none;
-
-transition:0.3s;
-}
-
-.input-group label{
-position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-
-color:#777;
-font-size:14px;
-pointer-events:none;
-
-transition:0.3s;
-background:transparent;
-padding:0 5px;
-}
-
-/* FLOAT EFFECT */
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label{
-top:-8px;
-left:20px;
-transform:none;
-font-size:12px;
-color:var(--button);
-background:var(--card-bg);
-border-radius:5px;
-}
-
-.input-group input:focus{
-background:white;
-box-shadow:0 0 0 2px rgba(106,90,205,0.4);
 }
 
 button{
 width:100%;
 padding:12px;
-
 border:none;
 border-radius:10px;
-
 background:linear-gradient(135deg,#6a5acd,#8a7cff);
 color:white;
-
-font-size:15px;
 cursor:pointer;
-
-margin-top:15px;
-
-transition:0.3s;
-}
-
-button:hover{
-transform:scale(1.03);
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
+margin-top:12px;
 }
 
 .toggle{
@@ -170,25 +95,9 @@ position:absolute;
 top:20px;
 right:20px;
 cursor:pointer;
-font-size:14px;
 background:white;
-padding:6px 10px;
+padding:5px 10px;
 border-radius:6px;
-z-index:2;
-}
-
-.links{
-margin-top:15px;
-font-size:14px;
-}
-
-.links a{
-text-decoration:none;
-color:var(--button);
-}
-
-.links a:hover{
-text-decoration:underline;
 }
 
 #errorMsg{
@@ -197,6 +106,10 @@ display:none;
 margin-top:10px;
 }
 
+#timer{
+margin-top:8px;
+font-size:14px;
+}
 </style>
 </head>
 
@@ -206,60 +119,51 @@ margin-top:10px;
 
 <div class="container">
 
-<h2>Women Safety Login Portal</h2>
+<h2>Login Portal</h2>
 
 <div class="input-group">
-<input id="name" type="text" required placeholder=" ">
-<label>Full Name</label>
+<input id="name" type="text" placeholder="Full Name">
 </div>
 
 <div class="input-group">
-<input id="email" type="email" required placeholder=" ">
-<label>Email ID</label>
+<input id="email" type="email" placeholder="Email">
 </div>
 
 <div class="input-group">
-<input id="password" type="password" required placeholder=" ">
-<label>Password</label>
+<input id="password" type="password" placeholder="Password">
 </div>
 
 <div class="input-group">
-<input id="mobile" type="tel" required placeholder=" ">
-<label>Mobile Number</label>
+<input id="mobile" type="tel" placeholder="Mobile Number">
 </div>
 
 <div class="input-group">
-<input id="otp" type="text" required placeholder=" ">
-<label>Enter OTP</label>
+<input id="otp" type="text" placeholder="Enter OTP">
 </div>
 
+<!-- IMPORTANT: type="button" prevents reload -->
 <button type="button" onclick="sendOTP()" id="otpBtn">Send OTP</button>
 
-<div id="timer" style="margin-top:8px; font-size:14px;"></div>
+<div id="timer"></div>
 
-<button type="button" onclick="login()" id="loginBtn">Login</button>
+<button type="button" onclick="login()">Login</button>
 
-<div id="errorMsg">Login failed</div>
-
-<div class="links">
-<a href="login.htm">Login Again</a> |
-<a href="index.htm">Back to Home</a>
-</div>
+<div id="errorMsg"></div>
 
 </div>
 
 <script>
 
+let generatedOTP = "";
 let otpExpireTime = 0;
 let countdown;
 
+/* DARK MODE */
 function toggleMode(){
 document.body.classList.toggle("dark");
 }
 
-
 /* SEND OTP */
-
 function sendOTP(){
 
 let mobile = document.getElementById("mobile").value;
@@ -271,36 +175,20 @@ errorBox.style.display="block";
 return;
 }
 
-fetch("http://127.0.0.1:8000/api/send-otp/",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-mobile: mobile
-})
-})
-.then(res=>res.json())
-.then(data=>{
-    if(data.status){
-        alert("OTP sent");
-    } else {
-        alert("Error sending OTP");
-    }
-});
+/* GENERATE OTP */
+generatedOTP = Math.floor(1000 + Math.random() * 9000);
+alert("Demo OTP: " + generatedOTP);
 
-/* OTP expiry 2 minutes */
+/* SET EXPIRY (2 MIN) */
 otpExpireTime = Date.now() + (2 * 60 * 1000);
 
 startTimer();
 
 document.getElementById("otpBtn").disabled = true;
-
+errorBox.style.display="none";
 }
 
-
-/* TIMER FUNCTION */
-
+/* TIMER */
 function startTimer(){
 
 let timerDisplay = document.getElementById("timer");
@@ -312,30 +200,24 @@ countdown = setInterval(function(){
 let remaining = otpExpireTime - Date.now();
 
 if(remaining <= 0){
-
 clearInterval(countdown);
 timerDisplay.innerHTML = "OTP expired";
-
 document.getElementById("otpBtn").disabled = false;
-
+generatedOTP = "";
 return;
-
 }
 
-let minutes = Math.floor((remaining / 1000) / 60);
-let seconds = Math.floor((remaining / 1000) % 60);
+let minutes = Math.floor((remaining/1000)/60);
+let seconds = Math.floor((remaining/1000)%60);
 
 if(seconds < 10) seconds = "0" + seconds;
 
 timerDisplay.innerHTML = "OTP expires in: " + minutes + ":" + seconds;
 
 },1000);
-
 }
 
-
 /* LOGIN */
-
 function login(){
 
 let name = document.getElementById("name").value;
@@ -346,67 +228,36 @@ let otp = document.getElementById("otp").value;
 
 let errorBox = document.getElementById("errorMsg");
 
-if(name === "" || email === "" || password === "" || mobile === "" || otp === ""){
+/* VALIDATION */
+if(!name || !email || !password || !mobile || !otp){
 errorBox.innerHTML = "Please fill all fields";
 errorBox.style.display = "block";
 return;
 }
 
-/* VERIFY OTP FROM DJANGO */
-
-fetch("http://127.0.0.1:8000/api/verify-otp/",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-mobile: mobile,
-otp: otp
-})
-})
-.then(res=>res.json())
-.then(data=>{
-    console.log("VERIFY RESPONSE:", data);
-
-if(data.status === "verified"){
-
-/* LOGIN USER */
-
-fetch("http://127.0.0.1:8000/api/login/",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-name:name,
-email:email,
-password:password,
-mobile:mobile
-})
-})
-.then(res=>res.json())
-.then(user=>{
-    console.log("LOGIN RESPONSE:", user); 
-
-localStorage.setItem("loggedIn","true");
-localStorage.setItem("name",user.name);
-localStorage.setItem("email",user.email);
-localStorage.setItem("mobile",user.mobile);
-
-window.location.href="index.htm";
-
-});
-
+/* OTP CHECK */
+if(Date.now() > otpExpireTime){
+errorBox.innerHTML = "OTP expired";
+errorBox.style.display="block";
+return;
 }
 
-else{
+if(otp != generatedOTP){
 errorBox.innerHTML = "Invalid OTP";
 errorBox.style.display="block";
+return;
 }
 
-});
+/* SUCCESS LOGIN */
+localStorage.setItem("loggedIn","true");
+localStorage.setItem("name",name);
 
+alert("Login successful ✅");
+
+/* REDIRECT */
+window.location.href = "index.htm";
 }
+
 </script>
 
 </body>
