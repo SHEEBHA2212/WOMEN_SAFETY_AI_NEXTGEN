@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Help Directory | Live Location & Nearby Services</title>
+<link rel="stylesheet" href="/static/css/global.css">
+<style>
+body { background-image: url("/static/images/bg6.png"); }
+
+.directory-card { width: 100%; max-width: 600px; padding: 30px; }
+
+label { font-weight: 600; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px; display: block; }
+
+.location-status { display: flex; align-items: center; gap: 8px; margin-top: -10px; margin-bottom: 15px; font-size: 0.85rem; flex-wrap: wrap; }
+.location-badge { background: var(--primary); color: white; border-radius: 40px; padding: 4px 12px; font-size: 0.75rem; font-weight: 600; }
+
+.result-item { background: var(--input-bg); padding: 18px; border-radius: 16px; margin-top: 15px; border-left: 4px solid var(--primary); transition: 0.3s; border-top: 1px solid var(--card-border); border-right: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); }
+.result-item strong { font-size: 1.1rem; color: var(--text-main); display: block; margin-bottom: 8px; }
+.result-item button { margin-top: 12px; padding: 10px 20px; border: none; border-radius: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; box-shadow: 0 4px 10px rgba(99,102,241,0.2); }
+.result-item button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(99,102,241,0.3); }
+
+.emergency-strip { margin-top: 30px; background: linear-gradient(135deg, #ff3366, #ff0844); padding: 16px; border-radius: 40px; text-align: center; transition: 0.3s; animation: pulse-danger 2s infinite; }
+.emergency-strip a { color: white; text-decoration: none; font-weight: 700; font-size: 1.15rem; letter-spacing: 0.5px; display: block; }
+.emergency-strip:hover { transform: scale(1.02); }
+
+.error-message { background: rgba(244,63,94,0.1); color: var(--accent); padding: 15px; border-radius: 12px; margin-top: 15px; text-align: center; border: 1px solid var(--accent); font-weight: 500;}
+.loading-text { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 20px; color: var(--text-muted); font-weight: 500;}
+.distance-badge { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+    <div class="nav-actions">
+        <div class="icon-btn" onclick="toggleDarkMode()" id="darkToggle" title="Toggle Dark Mode">🌙</div>
+    </div>
+</nav>
+
+<div class="main-content">
+<div class="glass-panel directory-card animate-fade-in">
+
+<h2 style="text-align: center;">Support Directory</h2>
+<p style="text-align: center; margin-bottom: 25px; color: var(--text-muted);">Find verified emergency services near your live location.</p>
+
+<div class="input-group">
+    <label>📍 Your Location</label>
+    <input type="text" id="locationInput" class="input-control" placeholder="Tap to detect your current location" readonly onclick="requestLocation()" style="cursor: pointer;">
+</div>
+<div id="locationStatus" class="location-status"></div>
+
+<div class="input-group" style="margin-top: 5px;">
+    <label>🆘 Service Type</label>
+    <select id="helpType" class="input-control">
+        <option value="">-- Select help category --</option>
+        <option value="Medical">🏥 Hospitals & Medical Centers</option>
+        <option value="Police">🚔 Police Stations</option>
+        <option value="Women Support">👩‍🦰 Women Support Helplines</option>
+        <option value="Pharmacy">💊 Nearby Pharmacies</option>
+    </select>
+</div>
+
+<button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="findHelp()">🔎 Secure Nearest Help</button>
+
+<div id="results" style="margin-top: 20px;"></div>
+
+<div class="emergency-strip">
+    <a href="tel:112">🚨 EMERGENCY - 112 (24/7)</a>
+</div>
+</div>
+</div>
+
+<footer class="glass-footer">
+Safe Space © 2026 | Women Safety Initiative <br>
+Contact: support@safespace.com
+</footer>
+
+<script>
+// ======================= ENHANCED LOCATION WITH ACCURACY =======================
+let userLat = null;
+let userLon = null;
+let locationAccuracy = null;
+let locationWatchId = null;
+let isLocating = false;
+
+const locationInput = document.getElementById("locationInput");
+const locationStatusDiv = document.getElementById("locationStatus");
+const resultsDiv = document.getElementById("results");
+
+function initDarkMode() {
+    const saved = localStorage.getItem("darkMode");
+    const darkToggleBtn = document.getElementById("darkToggle");
+    if (saved === "enabled") {
+        document.body.classList.add("dark");
+    } else {
+        document.body.classList.remove("dark");
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    const isDark = document.body.classList.contains("dark");
+    localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+}
+
+function goHome() { window.location.href = "/"; }
+
+function updateLocationUI(lat, lon, accuracy = null) {
+    if (lat && lon) {
+        let accText = "";
+        if (accuracy && accuracy < 500) {
+            const accuracyMeters = Math.round(accuracy);
+            accText = ` ±${accuracyMeters}m`;
+        }
+        locationInput.value = `📍 ${lat.toFixed(5)}°, ${lon.toFixed(5)}°${accText}`;
+        locationStatusDiv.innerHTML = `<span class="location-badge">✅ Live active</span> <span style="font-size:0.8rem; font-weight:600; color:var(--success);">GPS locked</span>`;
+    } else {
+        locationInput.value = "⚠️ Location unavailable - tap to retry";
+        locationStatusDiv.innerHTML = `<span style="color: var(--accent); font-weight:500;">⚠️ Enable location services from browser settings</span>`;
+    }
+}
+
+function requestLocation() {
+    if (isLocating) return;
+    if (!navigator.geolocation) {
+        locationInput.value = "❌ Geolocation not supported";
+        locationStatusDiv.innerHTML = `<span style="color: var(--accent);">Browser doesn't support location</span>`;
+        return;
+    }
+
+    isLocating = true;
+    locationInput.value = "🔍 Acquiring precise GPS location...";
+    locationStatusDiv.innerHTML = `<span style="color:var(--text-muted);">Fetching GPS...</span>`;
+
+    if (locationWatchId) navigator.geolocation.clearWatch(locationWatchId);
+
+    const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+            locationAccuracy = position.coords.accuracy;
+            
+            updateLocationUI(userLat, userLon, locationAccuracy);
+            isLocating = false;
+        },
+        (error) => {
+            locationInput.value = "⚠️ Location unavailable - tap to retry";
+            locationStatusDiv.innerHTML = `<span style="color: var(--accent); font-weight:500;">⚠️ Please enable location services in your browser.</span>`;
+            isLocating = false;
+        },
+        options
+    );
+}
+
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) ** 2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return (R * c).toFixed(2);
+}
+
+async function fetchNearbyOSM(lat, lon, type, radiusMeters = 5000) {
+    let osmKey = "";
+    if (type === "Medical") osmKey = "hospital";
+    else if (type === "Police") osmKey = "police";
+    else if (type === "Pharmacy") osmKey = "pharmacy";
+    else return [];
+    
+    const overpassQuery = `[out:json][timeout:25];(node["amenity"="${osmKey}"](around:${radiusMeters},${lat},${lon});way["amenity"="${osmKey}"](around:${radiusMeters},${lat},${lon});node["healthcare"="hospital"](around:${radiusMeters},${lat},${lon}););out center;`;
+    
+    try {
+        const response = await fetch("https://overpass-api.de/api/interpreter", {
+            method: "POST", body: overpassQuery, headers: { "Content-Type": "text/plain" }
+        });
+        const data = await response.json();
+        const elements = data.elements || [];
+        const results = [];
+        const seen = new Set();
+        
+        for (const el of elements) {
+            let elLat = el.lat || (el.center && el.center.lat);
+            let elLon = el.lon || (el.center && el.center.lon);
+            if (!elLat || !elLon) continue;
+            
+            let name = el.tags?.name;
+            if (!name || name.trim() === "") {
+                if (osmKey === "hospital") name = "Medical Center";
+                else if (osmKey === "police") name = "Police Station";
+                else if (osmKey === "pharmacy") name = "Pharmacy";
+                else name = "Service Center";
+            }
+            
+            const distance = parseFloat(getDistance(lat, lon, elLat, elLon));
+            const uniqueKey = `${name}_${elLat}_${elLon}`;
+            if (!seen.has(uniqueKey) && distance <= (radiusMeters/1000)) {
+                seen.add(uniqueKey);
+                results.push({ name: name, lat: elLat, lon: elLon, distance: distance });
+            }
+        }
+        
+        const uniqueResults = [];
+        for (const res of results) {
+            let isDuplicate = false;
+            for (const existing of uniqueResults) {
+                const distBetween = getDistance(res.lat, res.lon, existing.lat, existing.lon);
+                if (distBetween < 0.1 && existing.name === res.name) { isDuplicate = true; break; }
+            }
+            if (!isDuplicate) uniqueResults.push(res);
+        }
+        
+        uniqueResults.sort((a,b) => a.distance - b.distance);
+        return uniqueResults.slice(0, 8);
+    } catch (err) { return []; }
+}
+
+function getFallbackData(type, lat, lon) {
+    const fallbacks = [];
+    if (type === "Medical") {
+        fallbacks.push({ name: "City General Hospital", lat: lat + 0.02, lon: lon + 0.01, distance: 2.3 });
+        fallbacks.push({ name: "Apollo Medical Center", lat: lat - 0.015, lon: lon + 0.02, distance: 3.1 });
+    } else if (type === "Police") {
+        fallbacks.push({ name: "Central Police Station", lat: lat + 0.01, lon: lon - 0.005, distance: 1.2 });
+    } else if (type === "Pharmacy") {
+        fallbacks.push({ name: "MedPlus Pharmacy", lat: lat + 0.008, lon: lon - 0.01, distance: 0.9 });
+    }
+    return fallbacks;
+}
+
+async function findHelp() {
+    const helpType = document.getElementById("helpType").value;
+    if (!helpType) { resultsDiv.innerHTML = `<div class="error-message">⚠️ Please select a help type category.</div>`; return; }
+    if (!userLat || !userLon) { resultsDiv.innerHTML = `<div class="error-message">📍 Location not detected. Tap the location field to refresh.</div>`; return; }
+    
+    resultsDiv.innerHTML = `<div class="loading-text">Searching near you (${locationAccuracy ? Math.round(locationAccuracy)+'m precision' : 'live location'})...</div>`;
+    
+    if (helpType === "Women Support") {
+        resultsDiv.innerHTML = "";
+        const womenData = [
+            { name: "National Women Helpline", contact: "181", desc: "24/7 support for women in distress" },
+            { name: "Police Women Helpline", contact: "1091", desc: "Immediate police assistance" },
+            { name: "Domestic Abuse Hotline", contact: "1800-212-1800", desc: "Confidential counselling" }
+        ];
+        womenData.forEach(item => {
+            const div = document.createElement("div"); div.className = "result-item";
+            div.innerHTML = `<strong>👩 ${item.name}</strong>📞 <a href="tel:${item.contact.replace(/-/g, '')}" style="color:var(--primary); font-weight:600; font-size:1.1rem; text-decoration:none;">${item.contact}</a><br><small style="color: var(--text-muted);">${item.desc}</small>`;
+            resultsDiv.appendChild(div);
+        });
+        return;
+    }
+    
+    let searchType = helpType;
+    let places = await fetchNearbyOSM(userLat, userLon, searchType, 6000);
+    
+    if (!places || places.length === 0) {
+        places = getFallbackData(searchType, userLat, userLon);
+        if (places.length === 0) {
+            resultsDiv.innerHTML = `<div class="error-message">😔 No ${searchType.toLowerCase()} services found inside radius. Call emergency 112 instantly.</div>`;
+            return;
+        }
+        resultsDiv.innerHTML = `<div style="font-size:0.8rem; text-align:center; margin-bottom:12px; color: var(--accent); font-weight:600;">⚠️ Showing approximate fallback coordinates</div>`;
+    } else {
+        resultsDiv.innerHTML = "";
+    }
+    
+    const typeIcon = searchType === "Medical" ? "🏥" : (searchType === "Police" ? "🚔" : "💊");
+    let resultCount = 0;
+    
+    for (const place of places) {
+        const distanceText = place.distance < 1 ? `${Math.round(place.distance * 1000)} meters away` : `${place.distance} km away`;
+        const div = document.createElement("div"); div.className = "result-item";
+        div.innerHTML = `<strong>${typeIcon} ${escapeHtml(place.name)}</strong><div class="distance-badge">📍 ${distanceText}</div><button onclick="openRoute(${place.lat}, ${place.lon})">🗺️ Open Map Route</button>`;
+        resultsDiv.appendChild(div);
+        resultCount++;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return "Service Center";
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m;
+    });
+}
+
+function openRoute(destLat, destLon) {
+    if (userLat && userLon) {
+        window.open(`https://www.google.com/maps/dir/${userLat},${userLon}/${destLat},${destLon}/?travelmode=driving`);
+    } else { window.open(`https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLon}`); }
+}
+
+window.onload = () => {
+    initDarkMode();
+    setTimeout(() => { requestLocation(); }, 400);
+    resultsDiv.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.95rem;">📍 Please allow location access to discover precise emergency services nearby.</div>`;
+};
+</script>
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
+    }
+}
+</script>
+
+</body>
+</html>

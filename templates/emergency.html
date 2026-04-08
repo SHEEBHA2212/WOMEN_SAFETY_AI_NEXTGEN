@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Assistance</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        body {
+            background-image: url("/static/images/bg6.png");
+        }
+        
+        .emergency-card {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        /* Actions Grid for Emergency */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .action-btn {
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            font-size: 1rem;
+            font-weight: 600;
+            background: var(--input-bg);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .icon-lg {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        /* Location Box */
+        .location-box {
+            margin-top: 25px;
+            padding: 15px;
+            font-size: 0.95rem;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            display: none;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+    <div class="nav-actions">
+        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="glass-panel emergency-card animate-fade-in" style="padding: 40px;">
+        <h2>Immediate Assistance</h2>
+        <p style="margin-bottom: 30px;">If you are in danger, activate panic mode or contact emergency services below.</p>
+
+        <button class="btn btn-emergency" style="width: 100%; padding: 22px; font-size: 1.25rem; font-weight: 700; border-radius: 20px; margin-bottom: 30px;" onclick="activatePanic()">
+            <span style="font-size: 1.5rem; margin-right: 10px;">⚠️</span> ACTIVATE PANIC MODE
+        </button>
+
+        <div class="actions-grid">
+            <button class="action-btn" onclick="callNumber('112')">
+                <span class="icon-lg">🚨</span>
+                National 112
+            </button>
+            <button class="action-btn" onclick="callNumber('100')">
+                <span class="icon-lg">🚓</span>
+                Police
+            </button>
+            <button class="action-btn" onclick="callNumber('108')">
+                <span class="icon-lg">🚑</span>
+                Ambulance
+            </button>
+            <button class="action-btn" onclick="sendSMS()">
+                <span class="icon-lg">📩</span>
+                SOS SMS
+            </button>
+        </div>
+
+        <div id="locationBox" class="location-box"></div>
+    </div>
+</div>
+
+<footer class="glass-footer" style="margin-top:auto; width:100%;">
+    Safe Space Initiative © 2026<br>
+    Contact: support@safespace.com
+</footer>
+
+<script>
+window.onload = function() {
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark");
+    }
+};
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
+}
+
+/* Panic Mode */
+function activatePanic() {
+    if (!confirm("Are you sure you want to activate Panic Mode? This will track your location and prepare alerts.")) return;
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+            
+            const box = document.getElementById("locationBox");
+            box.style.display = "block";
+            box.innerHTML = `<strong>⚠️ Location actively tracked</strong><br><a href='${mapLink}' target='_blank' style='color:var(--primary); font-weight:bold; text-decoration:none;'>📍 Open Current Location in Maps</a>`;
+
+            window.currentLocation = "I am in an emergency situation. My live location: " + mapLink;
+        }, function(error) {
+            alert("Could not access location. Please ensure location services are enabled.");
+        });
+    } else {
+        alert("Geolocation is not supported by your browser.");
+    }
+}
+
+/* Call */
+function callNumber(num) {
+    if (confirm("Dial " + num + " now?")) {
+        window.location.href = "tel:" + num;
+    }
+}
+
+/* SMS */
+function sendSMS() {
+    let message = window.currentLocation || "HELP! I am in an emergency and require immediate assistance.";
+    window.location.href = "sms:?body=" + encodeURIComponent(message);
+}
+</script>
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
+    }
+}
+</script>
+
+</body>
+</html>

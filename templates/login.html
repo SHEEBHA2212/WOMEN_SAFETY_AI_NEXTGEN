@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Space - Secure Login</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        body {
+            background-image: url("/static/images/bg3.jpeg");
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        .login-header p {
+            font-size: 0.9rem;
+        }
+
+        .timer-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+            border: 1px solid var(--primary);
+        }
+
+        #errorMsg {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--accent);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            display: none;
+            border: 1px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        <div class="nav-actions">
+            <div class="icon-btn" onclick="toggleMode()" title="Toggle Dark Mode">🌙</div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="glass-panel login-card animate-fade-in">
+            <div class="login-header">
+                <h2>Secure Portal</h2>
+                <p>Register or Login to access confidential support.</p>
+            </div>
+
+            <div class="input-group">
+                <input id="name" type="text" class="input-control" placeholder="Full Name">
+            </div>
+
+            <div class="input-group">
+                <input id="email" type="email" class="input-control" placeholder="Email Address">
+            </div>
+
+            <div class="input-group">
+                <input id="password" type="password" class="input-control" placeholder="Secure Password">
+            </div>
+
+            <div class="input-group">
+                <input id="mobile" type="tel" class="input-control" placeholder="Mobile Number">
+            </div>
+
+            <div class="input-group" id="otpGroup" style="display:none;">
+                <input id="otp" type="text" class="input-control" placeholder="Enter OTP (See alert for demo)">
+            </div>
+
+            <!-- OTP Button -->
+            <button type="button" class="btn btn-primary" onclick="sendOTP()" id="otpBtn" style="width:100%; margin-top:10px;">
+                Authenticate & Send OTP
+            </button>
+
+            <div id="timerContainer" style="display:none;">
+                <div class="timer-badge" id="timer"></div>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="login()" id="loginBtn" style="width:100%; margin-top:20px; display:none;">
+                Secure Login
+            </button>
+
+            <div id="errorMsg"></div>
+        </div>
+    </div>
+
+    <!-- Minimal Footer inline for Login page -->
+    <footer style="position:absolute; bottom: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.7); font-size: 0.8rem; z-index: 10;">
+        Powered by Safe Space AI Analytics Infrastructure.
+    </footer>
+
+    <script>
+        let generatedOTP = "";
+        let otpExpireTime = 0;
+        let countdown;
+
+        function toggleMode(){
+            document.body.classList.toggle("dark");
+        }
+
+        window.onload = function() {
+            if(localStorage.getItem("darkMode") === "enabled") {
+                document.body.classList.add("dark");
+            }
+        };
+
+        function sendOTP(){
+            let name = document.getElementById("name").value;
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+            let mobile = document.getElementById("mobile").value;
+            let errorBox = document.getElementById("errorMsg");
+
+            if(!name || !email || !password || !mobile){
+                errorBox.innerHTML = "Please fill in all personal details first.";
+                errorBox.style.display="block";
+                return;
+            }
+
+            // Demo generation
+            generatedOTP = Math.floor(1000 + Math.random() * 9000);
+            alert("🔒 Secure Message System [Demo]\nYour Verification OTP is: " + generatedOTP);
+
+            otpExpireTime = Date.now() + (2 * 60 * 1000);
+            startTimer();
+
+            document.getElementById("otpBtn").style.display = "none";
+            document.getElementById("otpGroup").style.display = "block";
+            document.getElementById("timerContainer").style.display = "block";
+            document.getElementById("loginBtn").style.display = "flex";
+            errorBox.style.display="none";
+        }
+
+        function startTimer(){
+            let timerDisplay = document.getElementById("timer");
+            clearInterval(countdown);
+
+            countdown = setInterval(function(){
+                let remaining = otpExpireTime - Date.now();
+                if(remaining <= 0){
+                    clearInterval(countdown);
+                    timerDisplay.innerHTML = "OTP expired. Please try again.";
+                    document.getElementById("otpBtn").style.display = "block";
+                    document.getElementById("otpBtn").innerText = "Resend OTP";
+                    document.getElementById("loginBtn").style.display = "none";
+                    document.getElementById("otpGroup").style.display = "none";
+                    return;
+                }
+
+                let minutes = Math.floor((remaining/1000)/60);
+                let seconds = Math.floor((remaining/1000)%60);
+                if(seconds < 10) seconds = "0" + seconds;
+                timerDisplay.innerHTML = "⏳ Valid for: " + minutes + ":" + seconds;
+            }, 1000);
+        }
+
+        function login(){
+            let name = document.getElementById("name").value;
+            let email = document.getElementById("email").value;
+            let mobile = document.getElementById("mobile").value;
+            let otp = document.getElementById("otp").value;
+            let errorBox = document.getElementById("errorMsg");
+
+            if(!otp){
+                errorBox.innerHTML = "Please enter the OTP provided.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            if(Date.now() > otpExpireTime){
+                errorBox.innerHTML = "OTP has expired.";
+                errorBox.style.display="block";
+                return;
+            }
+
+            if(otp != generatedOTP){
+                errorBox.innerHTML = "Invalid OTP entered. Access Denied.";
+                errorBox.style.display="block";
+                return;
+            }
+
+            localStorage.setItem("loggedIn","true");
+            localStorage.setItem("name",name);
+            localStorage.setItem("email",email);
+            localStorage.setItem("mobile",mobile);
+
+            window.location.href = "/";
+        }
+    </script>
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
+    }
+}
+</script>
+
+</body>
+</html>

@@ -16,13 +16,30 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
+    # UI Routing
+    path('',          TemplateView.as_view(template_name='index.html'), name='home'),
+    path('login/',    TemplateView.as_view(template_name='login.html'), name='login'),
+    path('chat/',     TemplateView.as_view(template_name='chat.html'), name='chat'),
+    path('complaint/',TemplateView.as_view(template_name='complaint.html'), name='complaint'),
+    path('feedback-survey/', TemplateView.as_view(template_name='feedback.html'), name='feedback-survey'),
+    path('legal-support/',   TemplateView.as_view(template_name='legal.html'), name='legal-support'),
+    path('emergency/',       TemplateView.as_view(template_name='emergency.html'), name='emergency'),
+    path('directory/',       TemplateView.as_view(template_name='directory.html'), name='directory'),
+    path('contact/',         TemplateView.as_view(template_name='contact.html'), name='contact'),
+
     path('admin/', admin.site.urls),
     path('api/complaints/', include('complaint.urls')),
     path('api/support/', include('support.urls')),
     path('legal/', include('legal.urls')),
     path("feedback/", include("feedback.urls")),
     path('api/', include('voice.urls')),
-    path("api/", include("users.urls")),
+     path("", include("users.urls")), 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

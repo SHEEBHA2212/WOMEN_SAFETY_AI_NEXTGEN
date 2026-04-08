@@ -7,77 +7,45 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+<link rel="stylesheet" href="/static/css/global.css">
+
 <style>
+/* Preserve necessary component specific variables */
 :root {
-    --bg: #f4f6f8;
-    --card: #ffffff;
-    --text: #2e2e2e;
-    --subtext: #666;
-    --primary: #5f7c8a;
-    --neutral: #e9ecef;
+    --bg: transparent;
+    --card: transparent;
+    --text: var(--text-main);
+    --subtext: var(--text-muted);
+    --primary: var(--primary);
+    --neutral: var(--card-border);
 }
 
 body.dark {
-    --bg: #121212;
-    --card: #1e1e1e;
-    --text: #f0f0f0;
-    --subtext: #cccccc;
-    --primary: #7fa6b3;
-    --neutral: #2a2a2a;
+    --text: var(--text-main);
+    --subtext: var(--text-muted);
+    --primary: var(--primary);
+    --neutral: var(--card-border);
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
-
-body {
-    font-family: 'Inter', sans-serif;
-    background:
-        linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
-        url('./images/bg6.png') no-repeat center center/cover;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+/* Override input sizes to fit design */
+textarea, input[type="text"], select {
+    background: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--card-border);
 }
 
-header {
-    background: var(--card);
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+.step-heading {
+    font-size:13px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--primary);
+    margin-bottom:16px;
 }
-
-header h2 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text);
-}
-
-header button {
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    color: var(--text);
-}
-
-.container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
-}
-
-.card {
-    background: var(--card);
+.form-card {
     width: 100%;
-    max-width: 500px;
+    max-width: 550px;
     padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     text-align: left;
 }
 
@@ -342,14 +310,15 @@ label.field-label {
 
 <body>
 
-<header>
-    <button onclick="goHome()">Home</button>
-    <h2>Safe Space — Feedback</h2>
-    <button onclick="toggleDarkMode()">🌙</button>
-</header>
+<nav class="navbar">
+    <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+    <div class="nav-actions">
+        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+    </div>
+</nav>
 
-<div class="container">
-<div class="card">
+<div class="main-content">
+<div class="glass-panel form-card animate-fade-in">
 
     <h3>Share Your Experience</h3>
     <p class="subtitle">Your feedback helps us improve Safe Space for everyone.</p>
@@ -528,7 +497,7 @@ function toggleDarkMode() {
 }
 
 function goHome() {
-    window.location.href = "index.htm";
+    window.location.href = "/";
 }
 
 let selectedEmoji = "";
@@ -651,6 +620,29 @@ async function submitFeedback() {
         // Reset button
         submitBtn.disabled = false;
         submitBtn.innerHTML = "Submit Feedback ✅";
+    }
+}
+</script>
+
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
     }
 }
 </script>

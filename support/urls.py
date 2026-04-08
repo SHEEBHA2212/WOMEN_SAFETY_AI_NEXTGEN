@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path("chatbot/", views.chatbot),
+    path("ticket/", views.submit_ticket),
 ]

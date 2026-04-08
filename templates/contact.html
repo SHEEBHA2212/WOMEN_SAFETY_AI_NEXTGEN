@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Support - Safe Space</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        body { background-image: url("/static/images/bg3.jpeg"); }
+        .contact-card {
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+        <div class="nav-actions">
+            <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="glass-panel contact-card animate-fade-in">
+            <h2 style="margin-bottom: 10px;">Contact Support</h2>
+            <p style="margin-bottom: 30px;">How can we assist you today? Send a secure message directly to our admin team below.</p>
+
+            <form id="contactForm" onsubmit="submitSupport(event)">
+                <div class="input-group">
+                    <label class="floating-label">Your Email</label>
+                    <input type="email" id="cEmail" class="input-control" placeholder="example@mail.com" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="floating-label">Subject</label>
+                    <select id="cSubject" class="input-control" required>
+                        <option value="">Select a topic...</option>
+                        <option value="technical">Technical Issue / Bug</option>
+                        <option value="account">Account Management</option>
+                        <option value="privacy">Privacy & Security</option>
+                        <option value="general">General Inquiry</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <textarea id="cMessage" class="input-control" rows="5" placeholder="Describe your issue..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    📨 Send Message
+                </button>
+            </form>
+
+            <div id="successMessage" style="display: none; margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); color: var(--success); border-radius: 12px; font-weight: 600;">
+                Message securely sent to support@safespace.com!
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL SOS BUTTON -->
+    <button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+
+    <script>
+        function toggleDarkMode(){
+            document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
+        }
+        window.onload = function() {
+            if(localStorage.getItem("darkMode") === "enabled") {
+                document.body.classList.add("dark");
+            }
+            if(localStorage.getItem("email")) {
+                document.getElementById("cEmail").value = localStorage.getItem("email");
+            }
+        };
+
+        function submitSupport(event) {
+            event.preventDefault();
+            
+            const payload = {
+                email: document.getElementById("cEmail").value,
+                subject: document.getElementById("cSubject").value,
+                message: document.getElementById("cMessage").value
+            };
+
+            fetch("http://127.0.0.1:8000/api/support/ticket/", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            }).then(res => res.json())
+            .then(data => {
+                document.getElementById("contactForm").style.display = "none";
+                document.getElementById("successMessage").style.display = "block";
+                setTimeout(() => { window.location.href = "/"; }, 3000);
+            }).catch(err => {
+                alert("Error sending ticket. Try again later.");
+            });
+        }
+
+        function triggerGlobalSOS() {
+            if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(pos) {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                        const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                        window.location.href = "sms:?body=" + encodeURIComponent(message);
+                    }, function(error) {
+                        window.location.href = "tel:112";
+                    });
+                } else {
+                    window.location.href = "tel:112";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

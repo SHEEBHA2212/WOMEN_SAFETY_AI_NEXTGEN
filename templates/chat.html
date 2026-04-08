@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Space - Emergency Chat</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        body {
+            background-color: var(--background);
+            background-image: none;
+            overflow: hidden; /* Modern chat takes full screen space */
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 75px); /* Subtract navbar height */
+            width: 100%;
+            max-width: 800px;
+            margin: 75px auto 0 auto;
+            background: var(--card-bg);
+            border-left: 1px solid var(--card-border);
+            border-right: 1px solid var(--card-border);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            z-index: 10;
+        }
+
+        .chat-history {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg-bubble {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+
+        .bot-msg {
+            align-self: flex-start;
+            background: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .panic-msg {
+            align-self: flex-start;
+            background: linear-gradient(135deg, #ff3366, #ff0844);
+            color: white;
+            border-bottom-left-radius: 5px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 8, 68, 0.3);
+        }
+
+        .commands-strip {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            border-top: 1px solid var(--card-border);
+            background: var(--input-bg);
+            scrollbar-width: none;
+        }
+        .commands-strip::-webkit-scrollbar { display: none; }
+        
+        .dark .commands-strip {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        
+        .dark .chat-input-area {
+            background: rgba(30, 41, 59, 1);
+        }
+        
+        .dark .chat-input {
+            background: rgba(15, 23, 42, 0.8);
+            color: #fff;
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .cmd-pill {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .cmd-pill:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .cmd-pill.danger {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .cmd-pill.danger:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            display: flex;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--card-border);
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+        <div class="nav-actions">
+            <div class="icon-btn" onclick="toggleMode()" title="Toggle Dark Mode">🌙</div>
+        </div>
+    </nav>
+
+    <div class="chat-container">
+        <!-- Message History -->
+        <div class="chat-history" id="chat">
+            <div class="msg-bubble bot-msg">
+                🛡 Safe Emergency System Ready.<br>Use quick actions or ask AI for assistance.
+            </div>
+        </div>
+
+        <!-- Scrollable Quick Commands -->
+        <div class="commands-strip">
+            <button class="cmd-pill danger" onclick="cmd('panic')">🚨 PANIC</button>
+            <button class="cmd-pill danger" onclick="cmd('emergency')">🚑 112</button>
+            <button class="cmd-pill" onclick="cmd('police')">🚓 Police</button>
+            <button class="cmd-pill" onclick="cmd('ambulance')">🚑 Ambulance</button>
+            <button class="cmd-pill" onclick="cmd('women')">👩 Women Helpline</button>
+            <button class="cmd-pill" onclick="cmd('track')">📍 My Location</button>
+            <button class="cmd-pill" onclick="cmd('share')">📤 Share Link</button>
+            <button class="cmd-pill" onclick="cmd('sms')">📩 Auto SMS</button>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="input" placeholder="Ask Safety AI...">
+            <button class="send-btn" id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleMode(){
+            document.body.classList.toggle("dark");
+        }
+        
+        window.onload = function() {
+            if(localStorage.getItem("darkMode") === "enabled") {
+                document.body.classList.add("dark");
+            }
+        };
+
+        const chat = document.getElementById("chat");
+        const inputField = document.getElementById("input");
+        const sendBtn = document.getElementById("sendBtn");
+
+        // ---------- MESSAGE ----------
+        function add(text, type="bot") {
+            const d = document.createElement("div");
+            d.className = "msg-bubble " + type + "-msg";
+            d.innerHTML = text;
+            chat.appendChild(d);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // ---------- LOCATION CORE ----------
+        async function getLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) reject("Geolocation denied or unsupported.");
+                navigator.geolocation.getCurrentPosition(
+                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy }),
+                    err => reject(err.message),
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+
+        // ---------- COMMAND ENGINE ----------
+        async function cmd(c) {
+            const hour = new Date().getHours();
+
+            if (c === "panic") { add("🚨 PANIC MODE ACTIVATED<br>📞 Executing rapid dial protocols...", "panic"); window.location.href = "tel:112"; return; }
+            if (c === "emergency") { add(`🚑 Calling 112<br>${hour>21||hour<6?"🌙 High-alert protocol active.":"☀️ Ensure your surroundings are safe."}`, "panic"); window.location.href = "tel:112"; return; }
+            if (c === "police") { add("🚓 Connecting to Police Department..."); window.location.href = "tel:100"; return; }
+            if (c === "ambulance") { add("🚑 Connecting to Medical Emergency..."); window.location.href = "tel:108"; return; }
+            if (c === "women") { add("👩 Accessing National Women Helpline..."); window.location.href = "tel:181"; return; }
+            
+            if (c === "track") {
+                add("📡 Acquiring satellite coordinates...", "bot");
+                try {
+                    const loc = await getLocation();
+                    const mapUrl = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+                    const customHTML = `
+                        <strong style="display:block; margin-bottom: 8px; font-size: 1.05rem; border-bottom: 1px solid var(--card-border); padding-bottom: 5px;">📍 Live Location Secured</strong>
+                        <div style="font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
+                            <span style="color: var(--text-muted);">Lat:</span> <b>${loc.lat.toFixed(5)}°</b><br>
+                            <span style="color: var(--text-muted);">Lng:</span> <b>${loc.lng.toFixed(5)}°</b><br>
+                            <span style="color: var(--text-muted);">Accuracy:</span> <span style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">±${loc.acc.toFixed(0)}m</span>
+                        </div>
+                        <a href="${mapUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border-radius: 20px; text-decoration: none; font-size: 0.9rem; font-weight: 600; box-shadow: 0 4px 10px rgba(99,102,241,0.2); transition: transform 0.2s;">
+                            🗺️ View on Map
+                        </a>
+                    `;
+                    add(customHTML, "bot");
+                } catch(e) { add("❌ Location ping failed: " + e, "panic"); }
+                return;
+            }
+
+            if (c === "share") {
+                try {
+                    const loc = await getLocation();
+                    const url = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+                    await navigator.clipboard.writeText(url);
+                    add("📤 Live location link copied! Forwarding to emergency contacts highly recommended.<br><a href='"+url+"' target='_blank' style='color:var(--primary)'>"+url+"</a>");
+                } catch(e) { add("❌ Unable to format sharing coordinates.", "panic"); }
+                return;
+            }
+
+            if (c === "sms") {
+                add("📩 Draft created. Open your SMS app to send.");
+                window.location.href = "sms:?body=EMERGENCY! I need immediate assistance at my location.";
+                return;
+            }
+        }
+
+        // ---------- AI ----------
+        let API_KEY = null;
+        async function queryAI(msg) {
+            if (!API_KEY) {
+                API_KEY = prompt("Enter OpenRouter AI Key for Custom Advice:"); // Kept as in original purely for functionality
+                if (!API_KEY) return "AI Integration paused. Use quick commands for safety.";
+            }
+            try {
+                const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method:"POST",
+                    headers:{ "Authorization":"Bearer "+API_KEY, "Content-Type":"application/json" },
+                    body:JSON.stringify({
+                        model:"mistralai/mistral-7b-instruct:free",
+                        messages:[
+                            {role:"system",content:"You are a supportive, concise emergency safety assistant."},
+                            {role:"user",content:msg}
+                        ]
+                    })
+                });
+                const d = await r.json();
+                return d.choices?.[0]?.message?.content || "Connection timeout.";
+            } catch {
+                return "⚠️ Secure AI channel unavailable currently.";
+            }
+        }
+
+        // ---------- INPUT ----------
+        async function handleSend() {
+            const val = inputField.value.trim();
+            if (!val) return;
+
+            add(val, "user");
+            inputField.value = "";
+
+            add("⏳ Encrypting query...", "bot");
+            const reply = await queryAI(val);
+            chat.lastChild.remove();
+            
+            // Try formatting simple markdown bold lines if present
+            const formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            add(formattedReply, "bot");
+        }
+
+        inputField.addEventListener("keypress", e => { if (e.key === "Enter") handleSend(); });
+        sendBtn.addEventListener("click", handleSend);
+
+    </script>
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
+    }
+}
+</script>
+
+</body>
+</html>

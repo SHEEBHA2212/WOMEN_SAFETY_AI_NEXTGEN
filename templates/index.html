@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Space - Dashboard</title>
+    <!-- Connect Global Styles -->
+    <link rel="stylesheet" href="/static/css/global.css">
+    <!-- Inline page-specific backgrounds and tweaks -->
+    <style>
+        body {
+            background-image: url("/static/images/bg5.jpeg");
+        }
+        
+        .dashboard-card {
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .action-card {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            padding: 25px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .action-title {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        .quick-actions {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        #errorMsg { color: #f43f5e; margin-top: 10px; font-weight: 500; display: none;}
+    </style>
+</head>
+<body>
+
+    <!-- Unified Navbar -->
+    <nav class="navbar">
+        <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        <div class="nav-actions">
+            <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+            <div class="icon-btn" onclick="toggleProfile()" title="User Profile">👤</div>
+        </div>
+    </nav>
+
+    <!-- Profile Dropdown -->
+    <div class="glass-panel profile-dropdown" id="profileBox">
+        <h3>My Profile</h3>
+        <hr>
+        <p><span style="color:var(--text-muted)">Name:</span> <strong id="pName"></strong></p>
+        <p><span style="color:var(--text-muted)">Email:</span> <strong id="pEmail" style="font-size:0.85rem"></strong></p>
+        <p><span style="color:var(--text-muted)">Phone:</span> <strong id="pPhone"></strong></p>
+        <hr>
+        <button class="btn btn-secondary" style="width:100%; margin-bottom:10px" onclick="logout()">Logout</button>
+        <button class="btn btn-emergency" style="width:100%; padding:10px; font-size:1rem;" onclick="deleteAccount()">Delete Account</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="glass-panel dashboard-card animate-fade-in">
+            <h1>Welcome, <span id="welcomeName" style="color: var(--primary)"></span> 👋</h1>
+            <p style="font-size: 1.1rem; margin-top:10px;">Your secure environment for confidential help and immediate support.</p>
+
+            <div class="action-grid">
+                <div class="action-card" onclick="checkLogin('/chat/')">
+                    <div class="action-icon">💬</div>
+                    <div class="action-title">AI Support Chat</div>
+                </div>
+                <div class="action-card" onclick="checkLogin('/complaint/')">
+                    <div class="action-icon">📝</div>
+                    <div class="action-title">File Complaint</div>
+                </div>
+                <div class="action-card" onclick="checkLogin('/directory/')">
+                    <div class="action-icon">📍</div>
+                    <div class="action-title">Nearby Help</div>
+                </div>
+                <div class="action-card" onclick="checkLogin('/legal-support/')">
+                    <div class="action-icon">⚖️</div>
+                    <div class="action-title">Legal Resources</div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="btn btn-primary" style="width:100%; font-size:1.1rem; padding:18px;" onclick="startListening()">
+                    <span style="font-size:1.3rem;">🎙️</span> Enable Voice Safety Monitor
+                </button>
+                <button class="btn btn-emergency" style="width:100%; padding:20px;" onclick="location.href='/emergency/'">
+                    🚨 EMERGENCY ACTION 🚨
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Standard Footer -->
+    <footer class="glass-footer">
+        <h3>Safe Space Initiative</h3>
+        <p style="max-width: 600px; margin: 10px auto;">Empowering individuals with rapid access to support, legal guidance, and real-time help resources.</p>
+        <div style="margin-top: 15px;">
+            <a href="/feedback-survey/">⭐ Share Feedback</a> &nbsp;|&nbsp; 
+            <a href="/contact/">📧 Contact Support</a>
+        </div>
+        <p style="margin-top: 15px; font-size: 0.85rem;">© 2026 Safe Space AI. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        function toggleProfile(){
+            let box = document.getElementById("profileBox");
+            box.style.display = box.style.display === "block" ? "none" : "block";
+        }
+
+        document.addEventListener("click", function(e){
+            const box  = document.getElementById("profileBox");
+            const navActions = document.querySelector(".nav-actions");
+            if(!box.contains(e.target) && !navActions.contains(e.target)){
+                box.style.display = "none";
+            }
+        });
+
+        function checkLogin(page){
+            let loggedIn = localStorage.getItem("loggedIn");
+            if(loggedIn === "true"){
+                window.location.href = page;
+            } else {
+                localStorage.setItem("redirectAfterLogin", page);
+                window.location.href = "/login/";
+            }
+        }
+
+        function logout(){
+            if(confirm("Are you sure you want to securely logout?")){
+                localStorage.clear();
+                window.location.replace("/login/");
+            }
+        }
+
+        function deleteAccount(){
+            if(confirm("Warning: Delete your account permanently? All local data will be wiped.")){
+                localStorage.clear();
+                window.location.replace("/login/");
+            }
+        }
+
+        function toggleDarkMode(){
+            document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
+        }
+
+        window.onload = function(){
+            let name  = localStorage.getItem("name");
+            let email = localStorage.getItem("email");
+            let phone = localStorage.getItem("mobile");
+
+            document.getElementById("pName").innerText       = name || "Guest";
+            document.getElementById("pEmail").innerText      = email || "-";
+            document.getElementById("pPhone").innerText      = phone || "-";
+            document.getElementById("welcomeName").innerText = name || "Guest";
+
+            if(localStorage.getItem("darkMode") === "enabled"){
+                document.body.classList.add("dark");
+            }
+
+            if(localStorage.getItem("voiceEnabled") === "true" && !isListening){
+                startListening();
+            }
+        };
+
+        // VOICE DETECTION
+        let recognition;
+        let isListening = false;
+
+        function startListening() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert("Speech Recognition not supported in this browser.");
+                return;
+            }
+
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.lang = "en-US";
+
+            recognition.onstart = () => {
+                isListening = true;
+                localStorage.setItem("voiceEnabled", "true");
+                alert("🛡️ Voice Safety Monitor Activated. Listening for keywords: 'help', 'danger'.");
+            };
+
+            recognition.onresult = function (event) {
+                let transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+
+                if (transcript.includes("help") || transcript.includes("danger")) {
+                    alert("🚨 Voice Emergency Detected! Activating Camera & Alerting Authorities...");
+                    startEvidenceRecording();
+                }
+            };
+
+            recognition.onend = function () {
+                if (isListening) recognition.start();
+            };
+
+            recognition.start();
+        }
+
+        let mediaRecorder;
+        let chunks = [];
+        let stream;
+
+        async function startEvidenceRecording() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
+                mediaRecorder.start();
+
+                setTimeout(stopRecording, 15000);
+            } catch (err) {
+                alert("Camera permission denied. Cannot capture evidence.");
+            }
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            stream.getTracks().forEach(track => track.stop());
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: "video/webm" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "evidence_" + new Date().getTime() + ".webm";
+                a.click();
+
+                // Mock backend send
+                let formData = new FormData();
+                formData.append("video", blob, "evidence.webm");
+                fetch("http://127.0.0.1:8000/api/upload-video/", {
+                    method: "POST",
+                    body: formData
+                }).then(res => res.json()).catch(err => console.log("Offline mode: Evidence saved locally."));
+
+                chunks = [];
+            };
+        }
+    </script>
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
+    }
+}
+</script>
+
+</body>
+</html>

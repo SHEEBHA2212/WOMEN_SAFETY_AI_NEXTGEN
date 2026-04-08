@@ -24,5 +24,20 @@ def chatbot(request):
         reply = commands.get(message, "Unknown command. Type @help to see available commands.")
 
         return JsonResponse({"reply": reply})
-
     return JsonResponse({"reply": "Invalid request"})
+
+@csrf_exempt
+def submit_ticket(request):
+    if request.method == "POST":
+        try:
+            from .models import ContactTicket
+            data = json.loads(request.body)
+            ticket = ContactTicket.objects.create(
+                email=data.get("email"),
+                subject=data.get("subject"),
+                message=data.get("message")
+            )
+            return JsonResponse({"status": "success", "message": "Ticket stored!"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"error": "Only POST allowed"}, status=405)

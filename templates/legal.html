@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Assistance - Safe Space</title>
+<link rel="stylesheet" href="/static/css/global.css">
+<style>
+body { background-image: url("/static/images/bg6.png"); }
+
+.legal-card { width: 100%; max-width: 600px; padding: 30px; }
+
+/* ADVOCATE GRID */
+.advocate-grid{ display:flex; flex-wrap:wrap; gap:15px; margin:20px 0; }
+.adv-card{
+    flex:1 1 30%;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-radius:12px;
+    padding:15px;
+    text-align:center;
+    cursor:pointer;
+    transition: all 0.3s ease;
+}
+.adv-card:hover{transform:translateY(-5px); border-color: var(--primary);}
+.adv-card.selected{
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+}
+.adv-card h5{margin:10px 0 5px; font-size: 1.1rem;}
+.adv-card p{font-size:0.85rem; color: var(--text-muted);}
+.adv-card.selected h5, .adv-card.selected p{color:white;}
+
+/* CASE CARDS */
+.case-card{
+    background: var(--input-bg);
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin: 14px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-left: 6px solid var(--text-muted);
+    transition: transform 0.3s ease;
+}
+.case-card:hover{transform:translateY(-4px);}
+.case-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+.case-name{font-weight:600; font-size:1.1rem; color:var(--text-main);}
+.case-details{font-size:0.9rem; color:var(--text-muted); margin:3px 0;}
+.status-badge{padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:700; color:white; text-transform:uppercase;}
+.pending{background:#f59e0b;}
+.taken{background:#3b82f6;}
+.resolved{background:#10b981;}
+
+.track-box {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--card-border);
+}
+</style>
+</head>
+
+<body>
+<nav class="navbar">
+    <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+    <div class="nav-actions">
+        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+    </div>
+</nav>
+
+<div class="main-content">
+<div class="glass-panel legal-card animate-fade-in">
+
+    <h2 style="text-align: center;">Legal Assistance Network</h2>
+    <p style="text-align: center; margin-bottom: 25px;">Connect securely with trusted legal advocates.</p>
+
+    <div class="input-group">
+        <label class="floating-label">Your Full Name</label>
+        <input type="text" id="name" class="input-control" placeholder="Enter your name">
+    </div>
+
+    <div class="input-group">
+        <label class="floating-label">Contact Number</label>
+        <input type="text" id="phone" class="input-control" placeholder="10-digit number">
+    </div>
+
+    <div class="input-group">
+        <label class="floating-label">Primary Issue Category</label>
+        <select id="issueSelect" class="input-control">
+            <option value="">Select your issue...</option>
+            <option value="harassment">Workplace Harassment</option>
+            <option value="bullying">Public Bullying</option>
+            <option value="domestic">Domestic Violence</option>
+            <option value="discrimination">Social Discrimination</option>
+            <option value="cyber">Cyber Harassment / Crime</option>
+        </select>
+    </div>
+
+    <button type="button" class="btn btn-primary" style="width:100%" onclick="getAdvocates()">Find Specialized Advocates</button>
+
+    <div id="advocateSection" style="display:none; margin-top:20px;">
+        <h3 style="font-size: 1.1rem;">Matched Advocates</h3>
+        <div id="advocateList" class="advocate-grid"></div>
+        <button type="button" class="btn btn-secondary" style="width:100%" onclick="submitCase()">Confirm Selection</button>
+    </div>
+
+    <div id="formMessage" style="display:none; margin-top:15px; padding:10px; border-radius:8px; text-align:center; font-weight:500;"></div>
+
+    <div class="track-box">
+        <h3 style="font-size: 1.1rem; margin-bottom: 10px;">My Open Cases</h3>
+        <div id="caseList"></div>
+    </div>
+
+</div>
+</div>
+
+<footer class="glass-footer">
+    Safe Space Initiative © 2026<br>
+    Contact: support@safespace.com
+</footer>
+
+<script>
+function toggleDarkMode(){
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark")?"enabled":"disabled");
+}
+window.onload=function(){
+    if(localStorage.getItem("darkMode")==="enabled"){ document.body.classList.add("dark"); }
+    loadCases();
+};
+
+let formData={};
+let selectedAdvocate="";
+
+function getAdvocates(){
+    const name=document.getElementById("name").value.trim();
+    const phone=document.getElementById("phone").value.trim();
+    const issue=document.getElementById("issueSelect").value;
+    const msg=document.getElementById("formMessage");
+    msg.style.display="none";
+
+    if(!name||!phone||!issue){
+        msg.style.display="block"; msg.style.background="rgba(244,63,94,0.1)"; msg.style.color="var(--accent)"; msg.textContent="Please complete all fields."; return;
+    }
+    if(!/^[0-9]{10}$/.test(phone)){
+        msg.style.display="block"; msg.style.background="rgba(244,63,94,0.1)"; msg.style.color="var(--accent)"; msg.textContent="Enter a valid 10-digit number."; return;
+    }
+    
+    formData={name,phone,issue};
+    
+    const advocates={
+        harassment:[{name:"Priya Sharma",degree:"BA, LLB 👩‍⚖️"},{name:"Meena Rao",degree:"BA, LLB 👩‍⚖️"}],
+        bullying:[{name:"Arjun Verma",degree:"BA, LLB 👨‍⚖️"},{name:"Riya Singh",degree:"BA, LLB 👩‍⚖️"}],
+        domestic:[{name:"Kavya Iyer",degree:"BA, LLB 👩‍⚖️"},{name:"Neha Kapoor",degree:"BA, LLB 👩‍⚖️"}],
+        discrimination:[{name:"Raj Malhotra",degree:"BA, LLB 👨‍⚖️"},{name:"Pooja Nair",degree:"BA, LLB 👩‍⚖️"}],
+        cyber:[{name:"Sneha Gupta",degree:"BA, LLB 👩‍⚖️"},{name:"Vikram Rao",degree:"BA, LLB 👨‍⚖️"}]
+    };
+    
+    const container=document.getElementById("advocateList");
+    container.innerHTML="";
+    advocates[issue].forEach(a=>{
+        container.innerHTML+=`<div class="adv-card" onclick="selectAdvocate(this,'${a.name}')"><h5>${a.name}</h5><p>${a.degree}</p></div>`;
+    });
+    
+    document.getElementById("advocateSection").style.display="block";
+}
+
+function selectAdvocate(el,name){
+    document.querySelectorAll(".adv-card").forEach(c=>c.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedAdvocate=name;
+}
+
+function submitCase(){
+    const msg=document.getElementById("formMessage");
+    if(!selectedAdvocate){
+        msg.style.display="block"; msg.style.background="rgba(244,63,94,0.1)"; msg.style.color="var(--accent)"; msg.textContent="Please select an advocate to proceed."; return;
+    }
+    
+    formData.advocate=selectedAdvocate;
+    
+    fetch("http://127.0.0.1:8000/legal/submit-case/",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(formData)
+    }).then(res=>res.json())
+    .then(data=>{
+        msg.style.display="block"; msg.style.background="rgba(16,185,129,0.1)"; msg.style.color="var(--success)"; msg.textContent=data.message || "Case submitted successfully!";
+        document.getElementById("advocateSection").style.display="none";
+        loadCases();
+    })
+    .catch(()=>{
+        // Offline demo
+        msg.style.display="block"; msg.style.background="rgba(16,185,129,0.1)"; msg.style.color="var(--success)"; msg.textContent="Case successfully submitted! (Mock Offline Mode)";
+        document.getElementById("advocateSection").style.display="none";
+    });
+}
+
+function loadCases(){
+    fetch("http://127.0.0.1:8000/legal/get-cases/")
+    .then(res=>res.json())
+    .then(data=>{
+        const container=document.getElementById("caseList");container.innerHTML="";
+        if(data.length===0){ container.innerHTML="<p style='color:var(--text-muted); font-size:0.9rem;'>No active cases shown.</p>"; }
+        data.forEach(c=>{
+            let borderColor="var(--text-muted)",statusClass="pending";
+            if(c.status==="pending"){borderColor="#f59e0b";statusClass="pending";}
+            if(c.status==="taken"){borderColor="#3b82f6";statusClass="taken";}
+            if(c.status==="resolved"){borderColor="#10b981";statusClass="resolved";}
+            container.innerHTML+=`<div class="case-card" style="border-left-color:${borderColor}"><div class="case-header"><div class="case-name">${c.name}</div><span class="status-badge ${statusClass}">${c.status}</span></div><div class="case-details">📌 Issue: ${c.issue}</div><div class="case-details">⚖️ Advocate: ${c.advocate}</div></div>`;
+        });
+    })
+    .catch(()=>{
+        document.getElementById("caseList").innerHTML="<p style='color:var(--text-muted); font-size:0.9rem;'>Unable to connect to backend for case history.</p>";
+    });
+}
+</script>
+
+<!-- GLOBAL SOS BUTTON -->
+<button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
+<script>
+function triggerGlobalSOS() {
+    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
+                window.location.href = "sms:?body=" + encodeURIComponent(message);
+            }, function(error) {
+                window.location.href = "tel:112";
+            });
+        } else {
+            window.location.href = "tel:112";
+        }
+    }
+}
+</script>
+
+</body>
+</html>
