@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Space - Map View</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: var(--background); }
+        .map-wrapper { height: calc(100vh - 70px); width: 100%; margin-top: 70px; }
+        #fullMap { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="icon-btn" onclick="location.href='/'" title="Back to Home" style="font-size: 1.2rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--card-border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">⬅️</div>
+            <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        </div>
+        <div class="nav-actions">
+            <span style="font-weight: 600; color: var(--primary);">Secure Tracker</span>
+            <div class="icon-btn" onclick="toggleDarkMode()" id="themeToggleBtn" title="Toggle Dark Mode">🌙</div>
+        </div>
+    </nav>
+
+    <div class="map-wrapper">
+        <div id="fullMap"></div>
+    </div>
+
+    <script>
+        function updateThemeIcon(isDark) {
+            const btn = document.getElementById("themeToggleBtn");
+            if (btn) {
+                btn.innerText = isDark ? "☀️" : "🌙";
+                btn.title = isDark ? "Toggle Light Mode" : "Toggle Dark Mode";
+            }
+        }
+        window.onload = function() {
+            const isDark = localStorage.getItem("darkMode") === "enabled";
+            if(isDark) { document.body.classList.add("dark"); }
+            updateThemeIcon(isDark);
+            
+            initMap();
+        };
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
+            const isDark = document.body.classList.contains("dark");
+            localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+            updateThemeIcon(isDark);
+        }
+
+        function initMap() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+
+            if (!lat || !lng) {
+                document.getElementById('fullMap').innerHTML = "<div style='text-align:center; padding: 50px; color: var(--text-muted);'>No coordinates provided.</div>";
+                return;
+            }
+
+            const map = L.map('fullMap').setView([lat, lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.circle([lat, lng], {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                radius: 100
+            }).addTo(map);
+
+            L.marker([lat, lng]).addTo(map).bindPopup("<b style='font-size:1.1rem;'>Tracked Location</b>").openPopup();
+        }
+    </script>
+</body>
+</html>

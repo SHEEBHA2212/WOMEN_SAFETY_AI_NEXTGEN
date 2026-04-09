@@ -74,7 +74,7 @@
     <nav class="navbar">
         <div class="nav-title" onclick="location.href='/'">Safe Space</div>
         <div class="nav-actions">
-            <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+            <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode" id="themeToggleBtn">🌙</div>
             <div class="icon-btn" onclick="toggleProfile()" title="User Profile">👤</div>
         </div>
     </nav>
@@ -86,7 +86,9 @@
         <p><span style="color:var(--text-muted)">Name:</span> <strong id="pName"></strong></p>
         <p><span style="color:var(--text-muted)">Email:</span> <strong id="pEmail" style="font-size:0.85rem"></strong></p>
         <p><span style="color:var(--text-muted)">Phone:</span> <strong id="pPhone"></strong></p>
+        <p><span style="color:var(--accent)">EC Call:</span> <strong id="pEmergency"></strong></p>
         <hr>
+        <button class="btn btn-primary" style="width:100%; margin-bottom:10px" onclick="location.href='/platform-admin/'">Platform Admin Dashboard</button>
         <button class="btn btn-secondary" style="width:100%; margin-bottom:10px" onclick="logout()">Logout</button>
         <button class="btn btn-emergency" style="width:100%; padding:10px; font-size:1rem;" onclick="deleteAccount()">Delete Account</button>
     </div>
@@ -117,7 +119,7 @@
             </div>
 
             <div class="quick-actions">
-                <button class="btn btn-primary" style="width:100%; font-size:1.1rem; padding:18px;" onclick="startListening()">
+                <button class="btn btn-primary" style="width:100%; font-size:1.1rem; padding:18px;" onclick="startListening(true)">
                     <span style="font-size:1.3rem;">🎙️</span> Enable Voice Safety Monitor
                 </button>
                 <button class="btn btn-emergency" style="width:100%; padding:20px;" onclick="location.href='/emergency/'">
@@ -179,8 +181,17 @@
         }
 
         function toggleDarkMode(){
-            document.body.classList.toggle("dark");
-            localStorage.setItem("darkMode", document.body.classList.contains("dark") ? "enabled" : "disabled");
+            const isDark = document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const btn = document.getElementById("themeToggleBtn");
+            if (btn) {
+                btn.innerText = isDark ? "☀️" : "🌙";
+                btn.title = isDark ? "Toggle Light Mode" : "Toggle Dark Mode";
+            }
         }
 
         window.onload = function(){
@@ -191,11 +202,14 @@
             document.getElementById("pName").innerText       = name || "Guest";
             document.getElementById("pEmail").innerText      = email || "-";
             document.getElementById("pPhone").innerText      = phone || "-";
+            document.getElementById("pEmergency").innerText  = localStorage.getItem("emergencyContact") || "Not set";
             document.getElementById("welcomeName").innerText = name || "Guest";
 
-            if(localStorage.getItem("darkMode") === "enabled"){
+            const isDark = localStorage.getItem("darkMode") === "enabled";
+            if(isDark){
                 document.body.classList.add("dark");
             }
+            updateThemeIcon(isDark);
 
             if(localStorage.getItem("voiceEnabled") === "true" && !isListening){
                 startListening();
@@ -206,10 +220,19 @@
         let recognition;
         let isListening = false;
 
-        function startListening() {
+        function startListening(manual = false) {
+            if (isListening) {
+                if (manual) alert("🛡️ Voice Safety Monitor is already running.");
+                return;
+            }
+
             if (!('webkitSpeechRecognition' in window)) {
                 alert("Speech Recognition not supported in this browser.");
                 return;
+            }
+
+            if (manual) {
+                alert("🛡️ Voice Safety Monitor Activated. Listening for keywords: 'help', 'danger'.");
             }
 
             recognition = new webkitSpeechRecognition();
@@ -219,23 +242,28 @@
             recognition.onstart = () => {
                 isListening = true;
                 localStorage.setItem("voiceEnabled", "true");
-                alert("🛡️ Voice Safety Monitor Activated. Listening for keywords: 'help', 'danger'.");
             };
 
             recognition.onresult = function (event) {
                 let transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
 
                 if (transcript.includes("help") || transcript.includes("danger")) {
-                    alert("🚨 Voice Emergency Detected! Activating Camera & Alerting Authorities...");
+                    // No more pop ups here, just silently start the recording as requested
                     startEvidenceRecording();
                 }
             };
 
             recognition.onend = function () {
-                if (isListening) recognition.start();
+                if (isListening) {
+                    try {
+                        recognition.start();
+                    } catch(e) {}
+                }
             };
 
-            recognition.start();
+            try {
+                recognition.start();
+            } catch(e) {}
         }
 
         let mediaRecorder;
@@ -289,19 +317,21 @@
 <button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
 <script>
 function triggerGlobalSOS() {
-    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+    if(confirm("Activate immediate SOS? This will alert emergency contacts and share your location.")){
+        const ec = localStorage.getItem("emergencyContact") || "";
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
                 const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
-                window.location.href = "sms:?body=" + encodeURIComponent(message);
+                window.location.href = `sms:${ec}?body=` + encodeURIComponent(message);
+                setTimeout(() => { if(!ec) window.location.href = "tel:112"; }, 1500);
             }, function(error) {
-                window.location.href = "tel:112";
+                window.location.href = ec ? `tel:${ec}` : "tel:112";
             });
         } else {
-            window.location.href = "tel:112";
+            window.location.href = ec ? `tel:${ec}` : "tel:112";
         }
     }
 }

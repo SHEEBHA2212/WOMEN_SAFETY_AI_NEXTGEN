@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Space - Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        body { background-color: var(--background); background-image: none; }
+        .dashboard-container {
+            width: 95%; max-width: 1200px;
+            margin: 100px auto 40px auto;
+        }
+        
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .section-title {
+            font-size: 1.4rem; 
+            color: var(--text-main);
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0 10px; 
+            text-align: left;
+            font-size: 0.95rem; 
+            color: var(--text-main);
+        }
+
+        th, td {
+            padding: 16px 20px; 
+        }
+
+        th { 
+            background: transparent; 
+            font-weight: 600; 
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            border-bottom: none;
+        }
+
+        tr.data-row td { 
+            background: var(--input-bg);
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+            transition: background 0.3s ease;
+        }
+
+        tr.data-row td:first-child {
+            border-left: 1px solid var(--card-border);
+            border-top-left-radius: 16px;
+            border-bottom-left-radius: 16px;
+            font-weight: 600;
+        }
+
+        tr.data-row td:last-child {
+            border-right: 1px solid var(--card-border);
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+
+        tr.data-row:hover td {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        body.dark tr.data-row:hover td {
+            background: rgba(129, 140, 248, 0.15);
+        }
+
+        .status { 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-weight: 600; 
+            font-size: 0.8rem; 
+            border: 1px solid transparent;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-resolved, .status-taken { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+        .status-pending, .status-in-progress { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+        .status-submitted { background: rgba(99, 102, 241, 0.1); color: var(--primary); border-color: rgba(99, 102, 241, 0.3); }
+        
+        .empty-msg { color: var(--text-muted); font-style: italic; text-align: center; padding: 20px !important; }
+        
+        .action-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="icon-btn" onclick="location.href='/'" title="Back to Home" style="font-size: 1.2rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--card-border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">⬅️</div>
+            <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        </div>
+        <div class="nav-actions">
+            <span style="font-weight: 600; color: var(--text-muted); margin-right: 15px; border-right: 1px solid var(--card-border); padding-right: 15px;">Admin Control Panel</span>
+            <div class="icon-btn" onclick="toggleDarkMode()" id="themeToggleBtn" title="Toggle Dark Mode">🌙</div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        
+        <!-- COMPLAINTS -->
+        <div class="section-card">
+            <div class="section-title">🚨 Active Complaints</div>
+            <div class="table-responsive">
+                <table>
+                    <tr><th>Complaint ID</th><th>Recorded Date</th><th>Issue Type</th><th>Location Context</th><th>Current Status</th></tr>
+                    {% for c in complaints %}
+                    <tr class="data-row">
+                        <td style="color: var(--primary);">{{ c.complaint_id }}</td>
+                        <td>{{ c.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ c.issue_type }}</td>
+                        <td><span style="opacity: 0.8;">{{ c.location|truncatechars:40|default:"Not Provided" }}</span></td>
+                        <td><span class="status status-{{ c.status|slugify }}">{{ c.status }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="empty-msg data-row">No active complaints registered in the system.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <!-- LEGAL CASES -->
+        <div class="section-card">
+            <div class="section-title">⚖️ Legal Assistance Requests</div>
+            <div class="table-responsive">
+                <table>
+                    <tr><th>Applicant Name</th><th>Contact Details</th><th>Case Category</th><th>Assigned Advocate</th><th>Case Status</th></tr>
+                    {% for case in cases %}
+                    <tr class="data-row">
+                        <td>{{ case.name }}</td>
+                        <td><span style="opacity: 0.8;">{{ case.phone }}</span></td>
+                        <td>{{ case.issue|title }}</td>
+                        <td>{{ case.advocate|default:"Pending Assignment" }}</td>
+                        <td><span class="status status-{{ case.status|slugify }}">{{ case.status|title }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="empty-msg data-row">No legal cases initiated.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <!-- CONTACT TICKETS -->
+        <div class="section-card">
+            <div class="section-title">📧 Support & Inquiries</div>
+            <div class="table-responsive">
+                <table>
+                    <tr><th>Submission Date</th><th>Email Address</th><th>Subject Line</th><th>Message Snapshot</th></tr>
+                    {% for t in tickets %}
+                    <tr class="data-row">
+                        <td>{{ t.created_at|date:"M d, Y" }}</td>
+                        <td><a href="mailto:{{ t.email }}" class="action-link">{{ t.email }}</a></td>
+                        <td>{{ t.subject }}</td>
+                        <td><span style="opacity: 0.7;">{{ t.message|truncatechars:60 }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="empty-msg data-row">No support tickets found.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="section-card">
+            <div class="section-title">⭐ Platform Feedback & Surveys</div>
+            <div class="table-responsive">
+                <table>
+                    <tr><th>Date</th><th>User</th><th>Sentiment</th><th>Top Feature</th><th>Additional Comments</th></tr>
+                    {% for f in feedbacks %}
+                    <tr class="data-row">
+                        <td>{{ f.submitted_at|date:"M d, Y" }}</td>
+                        <td>{{ f.name|default:"Anonymous" }}</td>
+                        <td style="font-size: 1.4rem;" title="{{ f.overall_experience|title }}">{{ f.overall_experience|default:"-" }}</td>
+                        <td><span style="opacity: 0.8;">{{ f.best_feature|title }}</span></td>
+                        <td>{{ f.improvement }} {{ f.comments|default:"" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="empty-msg data-row">No survey data collected.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function updateThemeIcon(isDark) {
+            const btn = document.getElementById("themeToggleBtn");
+            if (btn) {
+                btn.innerText = isDark ? "☀️" : "🌙";
+                btn.title = isDark ? "Toggle Light Mode" : "Toggle Dark Mode";
+            }
+        }
+        window.onload = function() {
+            const isDark = localStorage.getItem("darkMode") === "enabled";
+            if(isDark) { document.body.classList.add("dark"); }
+            updateThemeIcon(isDark);
+        };
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
+            const isDark = document.body.classList.contains("dark");
+            localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+            updateThemeIcon(isDark);
+        }
+    </script>
+</body>
+</html>

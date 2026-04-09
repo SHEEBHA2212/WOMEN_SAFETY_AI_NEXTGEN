@@ -10,22 +10,7 @@
 <link rel="stylesheet" href="/static/css/global.css">
 
 <style>
-/* Preserve necessary component specific variables */
-:root {
-    --bg: transparent;
-    --card: transparent;
-    --text: var(--text-main);
-    --subtext: var(--text-muted);
-    --primary: var(--primary);
-    --neutral: var(--card-border);
-}
-
-body.dark {
-    --text: var(--text-main);
-    --subtext: var(--text-muted);
-    --primary: var(--primary);
-    --neutral: var(--card-border);
-}
+/* CSS overrides */
 
 /* Override input sizes to fit design */
 textarea, input[type="text"], select {
@@ -50,13 +35,13 @@ textarea, input[type="text"], select {
 }
 
 .card h3 {
-    color:var(--text);
+    color:var(--text-main);
     margin-bottom:5px;
     font-size:20px;
 }
 
 .card > .subtitle {
-    color:var(--subtext);
+    color:var(--text-muted);
     font-size:14px;
     margin-bottom:22px;
 }
@@ -67,7 +52,7 @@ textarea, input[type="text"], select {
     display:flex;
     justify-content:space-between;
     font-size:12px;
-    color:var(--subtext);
+    color:var(--text-muted);
     margin-bottom:6px;
 }
 
@@ -127,7 +112,7 @@ textarea, input[type="text"], select {
 
 .rating-table th {
     font-size:12px;
-    color:var(--subtext);
+    color:var(--text-muted);
     font-weight:500;
     padding:8px 6px;
     text-align:center;
@@ -139,7 +124,7 @@ textarea, input[type="text"], select {
     padding:10px 6px;
     text-align:center;
     font-size:14px;
-    color:var(--text-color);
+    color:var(--text-main);
     border-top:1px solid rgba(0,0,0,0.06);
 }
 
@@ -156,11 +141,11 @@ textarea, input[type="text"], select {
     width:100%;
     padding:10px 12px;
     border-radius:8px;
-    border:1px solid #ccc;
+    border:1px solid var(--card-border);
     font-family:'Inter',sans-serif;
     font-size:14px;
-    background:var(--card-color);
-    color:var(--text-color);
+    background:var(--input-bg);
+    color:var(--text-main);
     margin-bottom:14px;
 }
 
@@ -188,7 +173,7 @@ textarea { resize:vertical; min-height:85px; }
 
 .emoji-btn span {
     font-size:11px;
-    color:var(--subtext-color);
+    color:var(--text-muted);
 }
 
 .emoji-btn.selected {
@@ -207,11 +192,11 @@ textarea { resize:vertical; min-height:85px; }
 .rec-btn {
     padding:8px 16px;
     border-radius:20px;
-    border:2px solid #ccc;
-    background:none;
+    border:2px solid var(--card-border);
+    background:var(--input-bg);
     cursor:pointer;
     font-size:13px;
-    color:var(--text-color);
+    color:var(--text-main);
     transition:0.2s;
 }
 
@@ -246,10 +231,10 @@ button.primary-btn:disabled { opacity:0.6; cursor:not-allowed; }
 button.secondary-btn {
     flex:1;
     padding:12px;
-    border:1px solid #ccc;
+    border:1px solid var(--card-border);
     border-radius:8px;
-    background:transparent;
-    color:var(--text-color);
+    background:var(--input-bg);
+    color:var(--text-main);
     cursor:pointer;
     font-size:14px;
     transition:0.2s;
@@ -265,12 +250,12 @@ button.secondary-btn {
 
 .thankyou h3 {
     font-size:22px;
-    color:var(--text-color);
+    color:var(--text-main);
     margin-bottom:8px;
 }
 
 .thankyou p {
-    color:var(--subtext-color);
+    color:var(--text-muted);
     font-size:14px;
     margin-bottom:20px;
 }
@@ -279,7 +264,7 @@ label.field-label {
     display:block;
     font-size:13px;
     font-weight:500;
-    color:var(--text-color);
+    color:var(--text-main);
     margin-bottom:6px;
 }
 
@@ -311,9 +296,12 @@ label.field-label {
 <body>
 
 <nav class="navbar">
-    <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="icon-btn" onclick="location.href='/'" title="Back to Home" style="font-size: 1.2rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--card-border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">⬅️</div>
+            <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        </div>
     <div class="nav-actions">
-        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode" id="themeToggleBtn">🌙</div>
     </div>
 </nav>
 
@@ -341,10 +329,9 @@ label.field-label {
         <div class="dot" id="dot3"></div>
     </div>
 
-    <!-- ───── STEP 1: RATE FEATURES ───── -->
     <div class="step active" id="step1">
         <div class="step-heading">Step 1 — Rate Our Features</div>
-        <p style="font-size:13px;color:var(--subtext-color);margin-bottom:14px;">Please rate your satisfaction with the following:</p>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Please rate your satisfaction with the following:</p>
 
         <table class="rating-table">
             <thead>
@@ -485,15 +472,26 @@ label.field-label {
 
 <script>
 window.onload = function() {
-    if (localStorage.getItem("darkMode") === "enabled") {
+    const isDark = localStorage.getItem("darkMode") === "enabled";
+    if (isDark) {
         document.body.classList.add("dark");
     }
+    updateThemeIcon(isDark);
 };
+
+function updateThemeIcon(isDark) {
+    const btn = document.getElementById("themeToggleBtn");
+    if (btn) {
+        btn.innerText = isDark ? "☀️" : "🌙";
+        btn.title = isDark ? "Toggle Light Mode" : "Toggle Dark Mode";
+    }
+}
 
 function toggleDarkMode() {
     document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode",
-        document.body.classList.contains("dark") ? "enabled" : "disabled");
+    const isDark = document.body.classList.contains("dark");
+    localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+    updateThemeIcon(isDark);
 }
 
 function goHome() {
@@ -629,21 +627,25 @@ async function submitFeedback() {
 <button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
 <script>
 function triggerGlobalSOS() {
-    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+    if(confirm("Activate immediate SOS? This will alert emergency contacts and share your location.")){
+        const ec = localStorage.getItem("emergencyContact") || "";
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
                 const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
-                window.location.href = "sms:?body=" + encodeURIComponent(message);
+                window.location.href = `sms:${ec}?body=` + encodeURIComponent(message);
+                
+                setTimeout(() => { if(!ec) window.location.href = "tel:112"; }, 1500);
             }, function(error) {
-                window.location.href = "tel:112";
+                window.location.href = ec ? `tel:${ec}` : "tel:112";
             });
         } else {
-            window.location.href = "tel:112";
+            window.location.href = ec ? `tel:${ec}` : "tel:112";
         }
     }
+
 }
 </script>
 

@@ -62,9 +62,12 @@ body { background-image: url("/static/images/bg6.png"); }
 
 <body>
 <nav class="navbar">
-    <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="icon-btn" onclick="location.href='/'" title="Back to Home" style="font-size: 1.2rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--card-border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">⬅️</div>
+            <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        </div>
     <div class="nav-actions">
-        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</div>
+        <div class="icon-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode" id="themeToggleBtn">🌙</div>
     </div>
 </nav>
 
@@ -122,10 +125,21 @@ body { background-image: url("/static/images/bg6.png"); }
 <script>
 function toggleDarkMode(){
     document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode", document.body.classList.contains("dark")?"enabled":"disabled");
+    const isDark = document.body.classList.contains("dark");
+    localStorage.setItem("darkMode", isDark?"enabled":"disabled");
+    updateThemeIcon(isDark);
+}
+function updateThemeIcon(isDark) {
+    const btn = document.getElementById("themeToggleBtn");
+    if (btn) {
+        btn.innerText = isDark ? "☀️" : "🌙";
+        btn.title = isDark ? "Toggle Light Mode" : "Toggle Dark Mode";
+    }
 }
 window.onload=function(){
-    if(localStorage.getItem("darkMode")==="enabled"){ document.body.classList.add("dark"); }
+    const isDark = localStorage.getItem("darkMode")==="enabled";
+    if(isDark){ document.body.classList.add("dark"); }
+    updateThemeIcon(isDark);
     loadCases();
 };
 
@@ -220,21 +234,25 @@ function loadCases(){
 <button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
 <script>
 function triggerGlobalSOS() {
-    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+    if(confirm("Activate immediate SOS? This will alert emergency contacts and share your location.")){
+        const ec = localStorage.getItem("emergencyContact") || "";
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
                 const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
-                window.location.href = "sms:?body=" + encodeURIComponent(message);
+                window.location.href = `sms:${ec}?body=` + encodeURIComponent(message);
+                
+                setTimeout(() => { if(!ec) window.location.href = "tel:112"; }, 1500);
             }, function(error) {
-                window.location.href = "tel:112";
+                window.location.href = ec ? `tel:${ec}` : "tel:112";
             });
         } else {
-            window.location.href = "tel:112";
+            window.location.href = ec ? `tel:${ec}` : "tel:112";
         }
     }
+
 }
 </script>
 

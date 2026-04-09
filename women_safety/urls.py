@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
+from women_safety.views import internal_admin_dashboard
 
 urlpatterns = [
     # UI Routing
@@ -31,6 +32,8 @@ urlpatterns = [
     path('emergency/',       TemplateView.as_view(template_name='emergency.html'), name='emergency'),
     path('directory/',       TemplateView.as_view(template_name='directory.html'), name='directory'),
     path('contact/',         TemplateView.as_view(template_name='contact.html'), name='contact'),
+    path('map/',             TemplateView.as_view(template_name='map.html'), name='map'),
+    path('platform-admin/',  internal_admin_dashboard, name='platform-admin'),
 
     path('admin/', admin.site.urls),
     path('api/complaints/', include('complaint.urls')),

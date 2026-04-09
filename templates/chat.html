@@ -174,9 +174,12 @@
 <body>
 
     <nav class="navbar">
-        <div class="nav-title" onclick="location.href='/'">Safe Space &larr;</div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="icon-btn" onclick="location.href='/'" title="Back to Home" style="font-size: 1.2rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--card-border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">⬅️</div>
+            <div class="nav-title" onclick="location.href='/'">Safe Space</div>
+        </div>
         <div class="nav-actions">
-            <div class="icon-btn" onclick="toggleMode()" title="Toggle Dark Mode">🌙</div>
+            <div class="icon-btn" onclick="toggleMode()" title="Toggle Dark Mode" id="themeToggleBtn">🌙</div>
         </div>
     </nav>
 
@@ -209,13 +212,25 @@
 
     <script>
         function toggleMode(){
-            document.body.classList.toggle("dark");
+            const isDark = document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
+            updateThemeIcon(isDark);
+        }
+        
+        function updateThemeIcon(isDark) {
+            const btn = document.getElementById("themeToggleBtn");
+            if (btn) {
+                btn.innerText = isDark ? "☀️" : "🌙";
+                btn.title = isDark ? "Toggle Light Mode" : "Toggle Dark Mode";
+            }
         }
         
         window.onload = function() {
-            if(localStorage.getItem("darkMode") === "enabled") {
+            const isDark = localStorage.getItem("darkMode") === "enabled";
+            if(isDark) {
                 document.body.classList.add("dark");
             }
+            updateThemeIcon(isDark);
         };
 
         const chat = document.getElementById("chat");
@@ -257,7 +272,7 @@
                 add("📡 Acquiring satellite coordinates...", "bot");
                 try {
                     const loc = await getLocation();
-                    const mapUrl = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+                    const mapUrl = `/map/?lat=${loc.lat}&lng=${loc.lng}`;
                     const customHTML = `
                         <strong style="display:block; margin-bottom: 8px; font-size: 1.05rem; border-bottom: 1px solid var(--card-border); padding-bottom: 5px;">📍 Live Location Secured</strong>
                         <div style="font-size: 0.95rem; margin-bottom: 12px; line-height: 1.6;">
@@ -265,7 +280,7 @@
                             <span style="color: var(--text-muted);">Lng:</span> <b>${loc.lng.toFixed(5)}°</b><br>
                             <span style="color: var(--text-muted);">Accuracy:</span> <span style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">±${loc.acc.toFixed(0)}m</span>
                         </div>
-                        <a href="${mapUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border-radius: 20px; text-decoration: none; font-size: 0.9rem; font-weight: 600; box-shadow: 0 4px 10px rgba(99,102,241,0.2); transition: transform 0.2s;">
+                        <a href="${mapUrl}" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border-radius: 20px; text-decoration: none; font-size: 0.9rem; font-weight: 600; box-shadow: 0 4px 10px rgba(99,102,241,0.2); transition: transform 0.2s;">
                             🗺️ View on Map
                         </a>
                     `;
@@ -285,8 +300,9 @@
             }
 
             if (c === "sms") {
-                add("📩 Draft created. Open your SMS app to send.");
-                window.location.href = "sms:?body=EMERGENCY! I need immediate assistance at my location.";
+                const ec = localStorage.getItem("emergencyContact") || "";
+                add(`📩 Draft created. Open your SMS app to send to ${ec || 'emergency contacts'}.`);
+                window.location.href = `sms:${ec}?body=EMERGENCY! I need immediate assistance at my location.`;
                 return;
             }
         }
@@ -343,21 +359,25 @@
 <button class="floating-sos" onclick="triggerGlobalSOS()" title="Emergency SOS">🚨</button>
 <script>
 function triggerGlobalSOS() {
-    if(confirm("Activate immediate SOS? This will alert emergency services and share your location.")){
+    if(confirm("Activate immediate SOS? This will alert emergency contacts and share your location.")){
+        const ec = localStorage.getItem("emergencyContact") || "";
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
                 const message = "EMERGENCY! I need immediate help. My live location: " + mapLink;
-                window.location.href = "sms:?body=" + encodeURIComponent(message);
+                window.location.href = `sms:${ec}?body=` + encodeURIComponent(message);
+                
+                setTimeout(() => { if(!ec) window.location.href = "tel:112"; }, 1500);
             }, function(error) {
-                window.location.href = "tel:112";
+                window.location.href = ec ? `tel:${ec}` : "tel:112";
             });
         } else {
-            window.location.href = "tel:112";
+            window.location.href = ec ? `tel:${ec}` : "tel:112";
         }
     }
+
 }
 </script>
 
